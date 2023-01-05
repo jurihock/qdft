@@ -1,0 +1,17 @@
+.*/
+!.github/
+
+build*/
+cmake-build*/
+
+dist/
+*.egg-info/
+
+*.py[cod]
+__pycache__/
+
+.DS_Store
+Thumbs.db
+
+test.*.dft
+test.*.wav
