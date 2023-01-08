@@ -49,13 +49,12 @@ int main()
 
   // 2) estimate output dft
 
-  QDFT<double> qdft(sr, { 50, sr / 2 });  // create qdft plan
+  QDFT<double> qdft(sr, { 50, sr / 2 });        // create qdft plan
 
-  const auto m = qdft.size();  // get number of dft bins
+  const auto m = qdft.size();                   // get number of dft bins
+  nc::NdArray<std::complex<double>> dft(n, m);  // alloc dft matrix of shape (n, m)
 
-  nc::NdArray<std::complex<double>> dft(n, m);  // dft matrix of shape (n, m)
-
-  qdft.qdft(n, x.data(), dft.data());  // perform qdft analysis
+  qdft.qdft(n, x.data(), dft.data());           // perform qdft analysis
 
 
   // 3) plot spectrogram
@@ -67,7 +66,7 @@ int main()
   auto data = nc::pybindInterface::nc2pybind(db.transpose());
 
   plot.imshow(Args(data), Kwargs(
-    "extent"_a = py::make_tuple(0, n / sr, 0, sr / 2),
+    "extent"_a = py::make_tuple(0, n / sr, 0, 1),
     "origin"_a = "lower",
     "aspect"_a = "auto",
     "cmap"_a = "inferno",
@@ -78,9 +77,8 @@ int main()
   plot.xlabel(py::make_tuple("s"));
   plot.ylabel(py::make_tuple("Hz"));
 
-  // TODO: cbar.set_label("dB");
+  auto axes = plot.gca();
 
-  plot.ylim(py::make_tuple(0, 5000));
   plot.clim(py::make_tuple(-120, 0));
 
   plot.show();
