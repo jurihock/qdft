@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+title: "Constant-Q Sliding DFT in C++ and Python (QDFT)"
+authors:
+  - family-names: Hock
+    given-names: Juergen
+url: https://github.com/jurihock/qdft
+license: MIT
+type: software
+message: >-
+  If you use this software, please cite it
+  using the metadata from this file.
+references:
+  - title: "Sliding with a Constant Q"
+    authors:
+      - family-names: Bradford
+        given-names: Russell
+    url: https://www.dafx.de/paper-archive/2008/papers/dafx08_63.pdf
+    type: article
+  - title: "Sliding is Smoother Than Jumping"
+    authors:
+      - family-names: Bradford
+        given-names: Russell
+    url: http://hdl.handle.net/2027/spo.bbp2372.2005.086
+    type: article
+  - title: "Accurate, Guaranteed Stable, Sliding Discrete Fourier Transform"
+    authors:
+      - family-names: Duda
+        given-names: Krzysztof
+    url: https://ieeexplore.ieee.org/document/5563098
+    doi: 10.1109/MSP.2010.938088
+    type: article
