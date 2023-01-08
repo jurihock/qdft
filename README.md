@@ -1,4 +1,4 @@
-# Constant-Q Sliding DFT in C++ and Python
+# Constant-Q Sliding DFT in C++ and Python (QDFT)
 
 ![language](https://img.shields.io/badge/languages-C%2B%2B%20Python-blue)
 ![license](https://img.shields.io/github/license/jurihock/sdft?color=green)
