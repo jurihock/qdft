@@ -26,7 +26,7 @@ class Chroma:
         tmax = scale.semitone(fmax, 'abs')
 
         semitones = numpy.array(range(tmin, tmax))
-        frequencies = numpy.array([scale.frequency(t) for t in semitones])
+        frequencies = numpy.array([scale.frequency(semitone) for semitone in semitones])
         notes = numpy.array([scale.note(semitone) for semitone in semitones])
         octaves = numpy.array([scale.octave(frequency) for frequency in frequencies])
 
