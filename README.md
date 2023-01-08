@@ -21,7 +21,7 @@ Forward and inverse Constant-Q Sliding DFT according to [[1]](#1) with following
 
 # See also
 
-If you're interested in Sliding DFT with *linear* frequency resolution, don't forget to check my [jurihock/sdft](https://github.com/jurihock/sdft) project!
+If you're interested in Sliding DFT with *linear* frequency resolution, don't forget to browse my [jurihock/sdft](https://github.com/jurihock/sdft) project!
 
 ## References
 
