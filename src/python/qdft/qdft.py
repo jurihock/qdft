@@ -1,0 +1,101 @@
+import numpy
+
+
+class QDFT:
+
+    def __init__(self, samplerate, bandwidth, resolution=24, latency=0, window=(+0.5,-0.5)):
+
+        kernels = [0, +1, -1] if window is not None else [0]
+
+        quality = (2 ** (1 / resolution) - 1) ** -1
+        size = numpy.ceil(resolution * numpy.log2(bandwidth[1] / bandwidth[0])).astype(int)
+        frequencies = bandwidth[0] * numpy.power(2, numpy.arange(size) / resolution)
+
+        periods = numpy.ceil(quality * samplerate / frequencies).astype(int)
+        offsets = numpy.ceil((periods[0] - periods) * numpy.clip(latency * 0.5 + 0.5, 0, 1)).astype(int)
+
+        twiddles = [
+            numpy.exp(+2j * numpy.pi * (quality + k) / periods)
+            for k in kernels
+        ]
+
+        fiddles = [
+            numpy.exp(-2j * numpy.pi * (quality + k))
+            for k in kernels
+        ]
+
+        inputs = numpy.zeros(periods[0], dtype=float)
+
+        outputs = [
+            numpy.zeros(size, dtype=complex)
+            for k in kernels
+        ]
+
+        self.samplerate = samplerate
+        self.bandwidth = bandwidth
+        self.resolution = resolution
+        self.latency = latency
+        self.window = window
+        self.quality = quality
+        self.size = size
+        self.frequencies = frequencies
+        self.periods = periods
+        self.offsets = offsets
+        self.twiddles = twiddles
+        self.fiddles = fiddles
+        self.inputs = inputs
+        self.outputs = outputs
+        self.kernels = kernels
+
+    def qdft(self, samples):
+
+        samples = numpy.atleast_1d(samples).astype(float)
+        assert samples.ndim == 1
+
+        inputs = numpy.concatenate((self.inputs, samples))
+        self.inputs = inputs[samples.size:]
+
+        outputs = self.outputs
+
+        periods = self.periods
+        offsets = self.offsets + numpy.arange(samples.size)[:, None]
+
+        twiddles = self.twiddles
+        fiddles = self.fiddles
+
+        window = self.window
+        kernels = self.kernels
+
+        dfts = [
+            numpy.zeros((samples.size, self.size), dtype=complex)
+            for k in kernels
+        ]
+
+        for k in kernels:
+
+            deltas = (fiddles[k] * inputs[offsets + periods] - inputs[offsets]) / periods
+
+            dfts[k][-1] = outputs[k]
+
+            for i in range(samples.size):
+
+                dfts[k][i] = twiddles[k] * (dfts[k][i - 1] + deltas[i])
+
+            outputs[k] = dfts[k][-1]
+
+        if window is not None:
+
+            a, b = window[0], window[1] / 2
+
+            return a * dfts[0] + b * (dfts[-1] + dfts[+1])
+
+        return dfts[0]
+
+    def iqdft(dfts):
+
+        dfts = numpy.atleast_2d(dfts).astype(complex)
+        assert dfts.ndim == 2
+
+        samples = numpy.real(dfts * self.twiddles[0])
+
+        return numpy.sum(samples, axis=1)
