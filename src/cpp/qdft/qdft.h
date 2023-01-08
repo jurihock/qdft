@@ -40,7 +40,7 @@ public:
        const double latency = 0,
        const std::optional<std::pair<double, double>> window = std::make_pair(+0.5,-0.5))
   {
-    const F pi = F(2) * std::acos(F(-1));
+    const F pi = std::acos(F(-1));
 
     config.samplerate = samplerate;
     config.bandwidth = bandwidth;
@@ -51,44 +51,47 @@ public:
     config.size = std::ceil(resolution * std::log2(bandwidth.second / bandwidth.first));
 
     config.frequencies.resize(config.size);
+    common.periods.resize(config.size);
+    common.offsets.resize(config.size);
+    common.weights.resize(config.size);
 
     for (size_t i = 0; i < config.size; ++i)
     {
       const double frequency = config.bandwidth.first * std::pow(2.0, i / config.resolution);
 
       config.frequencies[i] = frequency;
+
+      const double period = std::ceil(config.quality * config.samplerate / frequency);
+
+      common.periods[i] = static_cast<size_t>(period);
+
+      const double offset = std::ceil((common.periods.front() - period)
+        * std::clamp(config.latency * 0.5 + 0.5, 0.0, 1.0));
+
+      common.offsets[i] = static_cast<size_t>(offset);
+
+      const F weight = F(1) / period;
+
+      common.weights[i] = weight;
     }
+
+    common.inputs.resize(common.periods.front() + 1);
 
     for (const auto k : { -1, 0, +1 })
     {
       auto& kernel = kernels[k];
 
-      kernel.data.resize(config.size + 1);
+      kernel.outputs.resize(config.size);
+      kernel.twiddles.resize(config.size);
 
       for (size_t i = 0; i < config.size; ++i)
       {
-        const double period = std::ceil(config.quality * config.samplerate / config.frequencies[i]);
+        const std::complex<F> twiddle = std::polar(F(1), F(+2) * pi * (config.quality + k) / common.periods[i]);
 
-        kernel.data[i].period = static_cast<size_t>(period);
-
-        const double offset = (kernel.data.front().period - period)
-          * std::clamp(config.latency * 0.5 + 0.5, 0.0, 1.0);
-
-        kernel.data[i].offset = static_cast<size_t>(offset);
-
-        const F weight = F(1) / period;
-
-        kernel.data[i].weight = weight;
-
-        const std::complex<F> twiddle = std::polar(F(1), +pi * (config.quality + k) / period);
-
-        kernel.data[i].twiddle = twiddle;
+        kernel.twiddles[i] = twiddle;
       }
 
-      kernel.data.back().twiddle = std::polar(F(1), -pi * (config.quality + k));
-
-      kernel.buffer.input.resize(kernel.data.front().period + 1);
-      kernel.buffer.output.resize(config.size);
+      kernel.fiddle = std::polar(F(1), F(-2) * pi * (config.quality + k));
     }
   }
 
@@ -114,33 +117,28 @@ public:
 
   void qdft(const T sample, std::complex<F>* const dft)
   {
+    std::rotate(common.inputs.begin(), common.inputs.begin() + 1, common.inputs.end());
+
+    common.inputs.back() = sample;
+
     const auto core = [&](const int k)
     {
-      const auto& data = kernels[k].data;
+      const auto& kernel = kernels[k];
 
-      auto& input = kernels[k].buffer.input;
-      auto& output = kernels[k].buffer.output;
-
-      std::rotate(input.begin(), input.begin() + 1, input.end());
-
-      input.back() = sample;
-
-      const std::complex<F> fiddle = data.back().twiddle;
+      const auto& inputs = common.inputs;
+      auto& outputs = kernels[k].outputs;
 
       for (size_t i = 0; i < config.size; ++i)
       {
-        const size_t period = data[i].period;
-        const size_t offset = data[i].offset;
+        const size_t period = common.periods[i];
+        const size_t offset = common.offsets[i];
+        const F weight = common.weights[i];
+        const std::complex<F> twiddle = kernel.twiddles[i];
+        const std::complex<F> fiddle = kernel.fiddle;
 
-        const F weight = data[i].weight;
-        const std::complex<F> twiddle = data[i].twiddle;
+        const std::complex<F> delta = (fiddle * inputs[offset + period] - inputs[offset]) * weight;
 
-        const F left = input[offset + period];
-        const F right = input[offset];
-
-        const std::complex<F> delta = fiddle * left - right;
-
-        output[i] = twiddle * (output[i] + delta * weight);
+        outputs[i] = twiddle * (outputs[i] + delta);
       }
     };
 
@@ -150,9 +148,9 @@ public:
 
       std::for_each(k.begin(), k.end(), core);
 
-      const auto& left = kernels[-1].buffer.output;
-      const auto& middle = kernels[0].buffer.output;
-      const auto& right = kernels[+1].buffer.output;
+      const auto& left = kernels[-1].outputs;
+      const auto& middle = kernels[0].outputs;
+      const auto& right = kernels[+1].outputs;
 
       const F a = config.window.value().first;
       const F b = config.window.value().second / 2;
@@ -166,7 +164,7 @@ public:
     {
       core(0);
 
-      const auto& middle = kernels[0].buffer.output;
+      const auto& middle = kernels[0].outputs;
 
       for (size_t i = 0; i < config.size; ++i)
       {
@@ -185,13 +183,13 @@ public:
 
   T iqdft(const std::complex<F>* dft)
   {
-    const auto& data = kernels[0].data;
+    const auto& twiddles = kernels[0].twiddles;
 
     F sample = F(0);
 
     for (size_t i = 0; i < config.size; ++i)
     {
-      sample += (dft[i] * data[i].twiddle).real();
+      sample += (dft[i] * twiddles[i]).real();
     }
 
     return static_cast<T>(sample);
@@ -219,27 +217,25 @@ private:
     std::optional<std::pair<double, double>> window;
   };
 
-  struct qdft_data_t
+  qdft_config_t config;
+
+  struct qdft_common_t
   {
-    size_t period;
-    size_t offset;
-    F weight;
-    std::complex<F> twiddle;
+    std::vector<size_t> periods;
+    std::vector<size_t> offsets;
+    std::vector<F> weights;
+    std::vector<T> inputs;
   };
 
-  struct qdft_buffer_t
-  {
-    std::vector<T> input;
-    std::vector<std::complex<F>> output;
-  };
+  qdft_common_t common;
 
   struct qdft_kernel_t
   {
-    std::vector<qdft_data_t> data;
-    qdft_buffer_t buffer;
+    std::complex<F> fiddle;
+    std::vector<std::complex<F>> twiddles;
+    std::vector<std::complex<F>> outputs;
   };
 
-  qdft_config_t config;
   std::map<int, qdft_kernel_t> kernels;
 
 };
