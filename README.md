@@ -3,7 +3,14 @@
 ![language](https://img.shields.io/badge/languages-C%2B%2B%20Python-blue)
 ![license](https://img.shields.io/github/license/jurihock/sdft?color=green)
 
-Forward and inverse Constant-Q Sliding DFT according to [[1]](#1).
+Forward and inverse Constant-Q Sliding DFT according to [[1]](#1) with following features:
+
+- Arbitrary octave resolution ([quarter tone](https://en.wikipedia.org/wiki/Quarter_tone) by default)
+- Built-in parameterizable cosine family window (Hann by default)
+- Customizable time and frequency domain data type in C++
+- Endless single or multiple sample processing at once
+- Optional analysis latency control parameter
+- Real-time analysis and synthesis capability
 
 ## WIP
 
