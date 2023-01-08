@@ -1,3 +1,23 @@
+"""
+Copyright (c) 2023 Juergen Hock
+
+SPDX-License-Identifier: MIT
+
+Constant Q Sliding DFT implementation according to [1] and [2].
+
+[1] Russell Bradford and Richard Dobson and John ffitch
+    Sliding with a Constant Q
+    International Conference on Digital Audio Effects (2008)
+    https://www.dafx.de/paper-archive/2008/papers/dafx08_63.pdf
+
+[2] Benjamin Blankertz
+    The Constant Q Transform
+    https://doc.ml.tu-berlin.de/bbci/material/publications/Bla_constQ.pdf
+
+Source: https://github.com/jurihock/qdft
+"""
+
+
 import numpy
 
 
