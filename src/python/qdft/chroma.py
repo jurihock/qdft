@@ -115,8 +115,10 @@ class Chroma:
         oldfreqs = self.qdft.frequencies
         oldbins = numpy.arange(oldfreqs.size)
         newbins = oldbins + errors
+        # TODO: is approximation possible? https://en.wikipedia.org/wiki/Cent_(music)
         newfreqs = self.qdft.bandwidth[0] * numpy.power(2, newbins / self.qdft.resolution)
-        # newfreqs = numpy.interp(newbins, oldbins, oldfreqs) # TODO: does interp make sense?
+        # TODO: does interp make sense?
+        # newfreqs = numpy.interp(newbins, oldbins, oldfreqs)
 
         cents = 1200 * numpy.log2(newfreqs / oldfreqs)
 
