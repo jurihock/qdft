@@ -116,6 +116,7 @@ class Chroma:
         oldbins = numpy.arange(oldfreqs.size)
         newbins = oldbins + errors
         newfreqs = self.qdft.bandwidth[0] * numpy.power(2, newbins / self.qdft.resolution)
+        # newfreqs = numpy.interp(newbins, oldbins, oldfreqs) # TODO: does interp make sense?
 
         cents = 1200 * numpy.log2(newfreqs / oldfreqs)
 
