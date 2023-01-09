@@ -20,17 +20,17 @@ build:
 	@python3 -m build
 
 install:
-	@python3 -m pip install sdft
+	@python3 -m pip install qdft
 
 install-test:
-	@python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps sdft
+	@python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps qdft
 
 reinstall:
-	@python3 -m pip uninstall -y sdft
-	@python3 -m pip install sdft
+	@python3 -m pip uninstall -y qdft
+	@python3 -m pip install qdft
 
 uninstall:
-	@python3 -m pip uninstall -y sdft
+	@python3 -m pip uninstall -y qdft
 
 upload:
 	@python3 -m twine upload dist/*
