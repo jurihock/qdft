@@ -49,22 +49,27 @@ class Chroma:
 
     def chroma(self, samples):
 
-        stash = { 'errors': None }
+        stash = { 'cents': None }
 
-        def analysis(dfts):
-            stash['errors'] = self.analyze(dfts)
+        def analysis(dfts, mode=None):
+            stash['cents'] = self.analyze(dfts, mode)
 
-        dfts = self.qdft.qdft(samples, analysis)
+        # TODO: analyze raw dfts
+        # dfts = self.qdft.qdft(samples, analysis)
+
+        # TODO: analyze windowed dfts
+        dfts = self.qdft.qdft(samples)
+        stash['cents'] = self.analyze(dfts, 'p')
 
         magnis = numpy.abs(dfts)
-        errors = stash['errors']
+        cents = stash['cents']
 
         if self.decibel:
 
             with numpy.errstate(all='ignore'):
                 magnis = 20 * numpy.log10(magnis)
 
-        chromagram = magnis + 1j * errors
+        chromagram = magnis + 1j * cents
 
         chromagram = chromagram[..., ::2]
         assert chromagram.shape[-1] == self.frequencies.shape[-1]
@@ -107,4 +112,11 @@ class Chroma:
         errors[...,  0] = 0
         errors[..., -1] = 0
 
-        return errors
+        oldfreqs = self.qdft.frequencies
+        oldbins = numpy.arange(oldfreqs.size)
+        newbins = oldbins + errors
+        newfreqs = self.qdft.bandwidth[0] * numpy.power(2, newbins / self.qdft.resolution)
+
+        cents = 1200 * numpy.log2(newfreqs / oldfreqs)
+
+        return cents
