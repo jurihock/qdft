@@ -15,7 +15,7 @@ from .scale import Scale
 
 class Chroma:
 
-    def __init__(self, samplerate, bandwidth=('A0', 'C#8'), concertpitch=440, decibel=True):
+    def __init__(self, samplerate, concertpitch=440, bandwidth=('A0', 'C#8'), decibel=True):
 
         scale = Scale(concertpitch)
 
@@ -36,8 +36,8 @@ class Chroma:
         size = qdft.size // 2
 
         self.samplerate = samplerate
-        self.bandwidth = bandwidth
         self.concertpitch = concertpitch
+        self.bandwidth = bandwidth
         self.decibel = decibel
         self.semitones = semitones
         self.frequencies = frequencies
@@ -85,7 +85,7 @@ class Chroma:
         if mode is None:
 
             with numpy.errstate(all='ignore'):
-                errors = -numpy.real((r - l) / (2 * m - r - l))
+                drifts = -numpy.real((r - l) / (2 * m - r - l))
 
         elif str(mode).lower() == 'p':
 
@@ -96,25 +96,25 @@ class Chroma:
             r = numpy.abs(r)
 
             with numpy.errstate(all='ignore'):
-                errors = p * (r - l) / (m + r + l)
+                drifts = p * (r - l) / (m + r + l)
 
         elif str(mode).lower() == 'q':
 
             q = 0.55
 
             with numpy.errstate(all='ignore'):
-                errors = -numpy.real(q * (r - l) / (2 * m + r + l))
+                drifts = -numpy.real(q * (r - l) / (2 * m + r + l))
 
         else:
 
-            errors = numpy.zeros(dfts.shape)
+            drifts = numpy.zeros(dfts.shape)
 
-        errors[...,  0] = 0
-        errors[..., -1] = 0
+        drifts[...,  0] = 0
+        drifts[..., -1] = 0
 
         oldfreqs = self.qdft.frequencies
         oldbins = numpy.arange(oldfreqs.size)
-        newbins = oldbins + errors
+        newbins = oldbins + drifts
         # TODO: is approximation possible? https://en.wikipedia.org/wiki/Cent_(music)
         newfreqs = self.qdft.bandwidth[0] * numpy.power(2, newbins / self.qdft.resolution)
         # TODO: does interp make sense?
