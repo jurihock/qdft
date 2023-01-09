@@ -29,3 +29,12 @@ references:
     url: https://ieeexplore.ieee.org/document/5563098
     doi: 10.1109/MSP.2010.938088
     type: article
+  - title: "Fast, Accurate Frequency Estimators"
+    authors:
+      - family-names: Jacobsen
+        given-names: Eric
+      - family-names: Kootsookos
+        given-names: Peter
+    url: https://ieeexplore.ieee.org/document/4205098
+    doi: 10.1109/MSP.2007.361611
+    type: article
