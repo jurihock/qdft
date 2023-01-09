@@ -30,7 +30,9 @@ If you're interested in Sliding DFT with *linear* frequency resolution, don't fo
 
 2. <span id="2">Russell Bradford et al. (2005). Sliding is Smoother Than Jumping. International Computer Music Conference Proceedings. http://hdl.handle.net/2027/spo.bbp2372.2005.086</span>
 
-3. <span id="1">Krzysztof Duda (2010). Accurate, Guaranteed Stable, Sliding Discrete Fourier Transform. IEEE Signal Processing Magazine. https://ieeexplore.ieee.org/document/5563098</span>
+3. <span id="3">Krzysztof Duda (2010). Accurate, Guaranteed Stable, Sliding Discrete Fourier Transform. IEEE Signal Processing Magazine. https://ieeexplore.ieee.org/document/5563098</span>
+
+4. <span id="4">Eric Jacobsen and Peter Kootsookos (2007). Fast, Accurate Frequency Estimators. IEEE Signal Processing Magazine. https://ieeexplore.ieee.org/document/4205098</span>
 
 ## License
 
