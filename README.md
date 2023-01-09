@@ -2,6 +2,7 @@
 
 ![language](https://img.shields.io/badge/languages-C%2B%2B%20Python-blue)
 ![license](https://img.shields.io/github/license/jurihock/sdft?color=green)
+![pypi](https://img.shields.io/pypi/v/qdft?color=gold)
 
 Forward and inverse Constant-Q Sliding DFT according to [[1]](#1) with following features:
 
@@ -16,7 +17,7 @@ Forward and inverse Constant-Q Sliding DFT according to [[1]](#1) with following
 
 - [ ] Readme
 - [ ] Docstrings
-- [ ] PyPI package
+- [x] PyPI package [qdft](https://pypi.org/project/qdft)
 - [ ] Sliding [chromagram](https://en.wikipedia.org/wiki/Chroma_feature) as a bonus
 
 ## See also
