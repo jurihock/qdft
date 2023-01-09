@@ -47,13 +47,42 @@ class Chroma:
         self.scale = scale
         self.qdft = qdft
 
+    def chroma(self, samples):
+
+        stash = { 'errors': None }
+
+        def analysis(dfts):
+            stash['errors'] = self.analyze(dfts)
+
+        dfts = self.qdft.qdft(samples, analysis)
+
+        magnis = numpy.abs(dfts)
+        errors = stash['errors']
+
+        if self.decibel:
+
+            with numpy.errstate(all='ignore'):
+                magnis = 20 * numpy.log10(magnis)
+
+        chromagram = magnis + 1j * errors
+
+        chromagram = chromagram[..., ::2]
+        assert chromagram.shape[-1] == self.frequencies.shape[-1]
+
+        return chromagram
+
     def analyze(self, dfts, mode=None):
 
         l = numpy.roll(dfts, +1, axis=-1)
         m = dfts
         r = numpy.roll(dfts, -1, axis=-1)
 
-        if str(mode).lower() == 'p':
+        if mode is None:
+
+            with numpy.errstate(all='ignore'):
+                errors = -numpy.real((r - l) / (2 * m - r - l))
+
+        elif str(mode).lower() == 'p':
 
             p = 1.36
 
@@ -73,29 +102,9 @@ class Chroma:
 
         else:
 
-            with numpy.errstate(all='ignore'):
-                errors = -numpy.real((r - l) / (2 * m - r - l))
+            errors = numpy.zeros(dfts.shape)
 
         errors[...,  0] = 0
         errors[..., -1] = 0
 
         return errors
-
-    def chroma(self, samples):
-
-        dfts = self.qdft.qdft(samples)
-
-        magnis = numpy.abs(dfts)
-        errors = self.analyze(dfts)
-
-        if self.decibel:
-
-            with numpy.errstate(all='ignore'):
-                magnis = 20 * numpy.log10(magnis)
-
-        chromagram = magnis + 1j * errors
-
-        chromagram = chromagram[..., ::2]
-        assert chromagram.shape[-1] == self.frequencies.shape[-1]
-
-        return chromagram
