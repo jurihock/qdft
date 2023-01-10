@@ -83,3 +83,36 @@ class Chroma:
         assert chromagram.shape[-1] == self.frequencies.shape[-1]
 
         return chromagram
+
+
+class Chroma12:
+
+    def __init__(self, samplerate, concertpitch=440, bandwidth=('A0', 'C#8')):
+
+        superchroma = Chroma(samplerate, concertpitch, bandwidth, decibel=False, feature=None)
+
+        notes = superchroma.scale.scale
+        size = len(notes)
+
+        index = superchroma.scale.note(superchroma.notes[0])
+        shift = -((size - index) % size)
+
+        self.superchroma = superchroma
+        self.notes = notes
+        self.size = size
+        self.shift = shift
+
+    def chroma(self, samples):
+
+        n = self.size
+
+        src = self.superchroma.chroma(samples)
+        dst = numpy.empty((len(src), n))
+
+        for i in range(n):
+
+            dst[:, i] = src[:, i::n].sum(axis=-1)
+
+        dst = numpy.roll(dst, self.shift, axis=-1)
+
+        return dst
