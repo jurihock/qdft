@@ -43,7 +43,7 @@ def main():
 
     # 2) analyze previously built test signal
 
-    chroma = Chroma(sr, cp)
+    chroma = Chroma(sr, cp, feature='cent')
 
     chromagram = chroma.chroma(x)[-1]  # pick last chromagram entry
 

@@ -67,7 +67,7 @@ class QDFT:
         self.outputs = outputs
         self.kernels = kernels
 
-    def qdft(self, samples, callback=None):
+    def qdft(self, samples):
 
         samples = numpy.atleast_1d(samples).astype(float)
         assert samples.ndim == 1
@@ -102,14 +102,6 @@ class QDFT:
                 dfts[k][i] = twiddles[k] * (dfts[k][i - 1] + deltas[i])
 
             outputs[k] = dfts[k][-1]
-
-        if callback is not None:
-
-            assert callable(callback)
-
-            dfts[0].setflags(write=False)
-            try: callback(dfts[0])
-            finally: dfts[0].setflags(write=True)
 
         if window is not None:
 
