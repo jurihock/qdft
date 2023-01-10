@@ -43,7 +43,7 @@ def main():
     plot.xlabel('s')
     cbar.set_label('CP')
 
-    plot.gca().yaxis.set_major_locator(ticker.MultipleLocator(1))
+    plot.gca().yaxis.set_major_locator(ticker.IndexLocator(1, 0))
     plot.gca().yaxis.set_major_formatter(lambda i, _: chroma.notes[int(i) % chroma.size])
 
     plot.show()
