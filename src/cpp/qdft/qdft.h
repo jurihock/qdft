@@ -3,7 +3,7 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Constant Q Sliding DFT implementation according to [1] and [2].
+ * Constant-Q Sliding DFT implementation according to [1] and [2].
  *
  * [1] Russell Bradford and Richard Dobson and John ffitch
  *     Sliding with a Constant Q

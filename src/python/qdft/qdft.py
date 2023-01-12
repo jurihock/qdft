@@ -3,7 +3,7 @@ Copyright (c) 2023 Juergen Hock
 
 SPDX-License-Identifier: MIT
 
-Constant Q Sliding DFT implementation according to [1] and [2].
+Constant-Q Sliding DFT implementation according to [1] and [2].
 
 [1] Russell Bradford and Richard Dobson and John ffitch
     Sliding with a Constant Q
@@ -22,8 +22,27 @@ import numpy
 
 
 class QDFT:
+    """
+    Constant-Q Sliding Discrete Fourier Transform (QDFT).
+    """
 
     def __init__(self, samplerate, bandwidth, resolution=24, latency=0, window=(+0.5,-0.5)):
+        """
+        Create a new QDFT plan.
+
+        Parameters
+        ----------
+        samplerate : int
+            Sample rate in hertz.
+        bandwidth : tuple(float, float)
+            Lowest and highest frequency in hertz to be resolved.
+        resolution : int, optional
+            Octave resolution, e.g. number of bins per octave.
+        latency : float, optional
+            Analysis latency factor between -1 and +1.
+        window : tuple(float, float), optional
+            Cosine family window coeffs, e.g. (+0.5,-0.5) in case of hann window.
+        """
 
         kernels = [0, +1, -1] if window is not None else [0]
 
@@ -68,6 +87,19 @@ class QDFT:
         self.kernels = kernels
 
     def qdft(self, samples):
+        """
+        Estimate the DFT matrix for the given sample array.
+
+        Parameters
+        ----------
+        samples : ndarray, list, float
+            Array of samples.
+
+        Returns
+        -------
+        dfts : ndarray
+            DFT matrix of shape (samples,frequencies).
+        """
 
         samples = numpy.atleast_1d(samples).astype(float)
         assert samples.ndim == 1
@@ -112,6 +144,19 @@ class QDFT:
         return dfts[0]
 
     def iqdft(dfts):
+        """
+        Synthesize the sample array from the given DFT matrix.
+
+        Parameters
+        ----------
+        dfts : ndarray
+            DFT matrix of shape (samples,frequencies).
+
+        Returns
+        -------
+        samples : ndarray
+            Array of samples.
+        """
 
         dfts = numpy.atleast_2d(dfts).astype(complex)
         assert dfts.ndim == 2
