@@ -22,9 +22,10 @@ Forward and inverse Constant-Q Sliding DFT according to [[1]](#1) with following
 
 ## Examples
 
-| QDFT `face.py` | Chroma12 `cmajor.py` |
-| ---- | ---- |
+| QDFT | Chroma12 |
+| :--: | :------: |
 | ![SDFT](https://github.com/jurihock/qdft/raw/main/examples/face.png) | ![STFT](https://github.com/jurihock/qdft/raw/main/examples/cmajor.png) |
+| [face.py](https://github.com/jurihock/qdft/blob/main/examples/face.py) | [cmajor.py](https://github.com/jurihock/qdft/blob/main/examples/cmajor.py) |
 | ![SDFT](https://github.com/jurihock/qdft/raw/main/examples/face.wav.png) | ![STFT](https://github.com/jurihock/qdft/raw/main/examples/cmajor.wav.png) |
 
 ## See also
