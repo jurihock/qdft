@@ -16,7 +16,7 @@ from .scale import Scale
 
 class Chroma:
 
-    def __init__(self, samplerate, concertpitch=440, bandwidth=('A0', 'C#8'), decibel=True, feature=None):
+    def __init__(self, samplerate, concertpitch=440, bandwidth=('A0', 'C#8'), latency=0, decibel=True, feature=None):
 
         scale = Scale(concertpitch)
 
@@ -31,7 +31,7 @@ class Chroma:
         notes = numpy.array([scale.note(semitone) for semitone in semitones])
         octaves = numpy.array([scale.octave(frequency) for frequency in frequencies])
 
-        qdft = QDFT(samplerate, (fmin, fmax), 24)
+        qdft = QDFT(samplerate, (fmin, fmax), 24, latency)
         assert numpy.allclose(qdft.frequencies[::2], frequencies)
 
         size = qdft.size // 2
@@ -39,6 +39,7 @@ class Chroma:
         self.samplerate = samplerate
         self.concertpitch = concertpitch
         self.bandwidth = bandwidth
+        self.latency = latency
         self.decibel = decibel
         self.feature = feature
         self.semitones = semitones
@@ -87,9 +88,9 @@ class Chroma:
 
 class Chroma12:
 
-    def __init__(self, samplerate, concertpitch=440, bandwidth=('A0', 'C#8')):
+    def __init__(self, samplerate, concertpitch=440, bandwidth=('A0', 'C#8'), latency=0):
 
-        superchroma = Chroma(samplerate, concertpitch, bandwidth, decibel=False, feature=None)
+        superchroma = Chroma(samplerate, concertpitch, bandwidth, latency, decibel=False, feature=None)
 
         notes = superchroma.scale.scale
         size = len(notes)
@@ -97,10 +98,14 @@ class Chroma12:
         index = superchroma.scale.note(superchroma.notes[0])
         shift = -((size - index) % size)
 
-        self.superchroma = superchroma
+        self.samplerate = samplerate
+        self.concertpitch = concertpitch
+        self.bandwidth = bandwidth
+        self.latency = latency
         self.notes = notes
         self.size = size
         self.shift = shift
+        self.superchroma = superchroma
 
     def chroma(self, samples):
 
