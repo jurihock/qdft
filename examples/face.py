@@ -17,7 +17,7 @@ def main():
 
     x = np.array(x).mean(axis=-1)
 
-    qdft = QDFT(sr, bandwidth=(100, min(20e3, sr/2)))
+    qdft = QDFT(sr, bandwidth=(100, min(20e3, sr/2)), resolution=50, latency=1)
 
     spectrogram = np.empty((0, qdft.size))
 

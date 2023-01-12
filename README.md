@@ -20,6 +20,13 @@ Forward and inverse Constant-Q Sliding DFT according to [[1]](#1) with following
 - [x] PyPI package [qdft](https://pypi.org/project/qdft)
 - [ ] Sliding [chromagram](https://en.wikipedia.org/wiki/Chroma_feature) as a bonus
 
+## Examples
+
+| QDFT | Chroma12 |
+| ---- | ---- |
+| ![SDFT](https://github.com/jurihock/qdft/raw/main/examples/face.png) | ![STFT](https://github.com/jurihock/qdft/raw/main/examples/cmajor.png) |
+| `face.py` | `cmajor.py` |
+
 ## See also
 
 If you're interested in Sliding DFT with *linear* frequency resolution, don't forget to browse my [jurihock/sdft](https://github.com/jurihock/sdft) project!
