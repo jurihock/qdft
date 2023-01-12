@@ -54,7 +54,15 @@ def main():
     plot.gca().yaxis.set_major_locator(ticker.IndexLocator(qdft.size//10, 0))
     plot.gca().yaxis.set_major_formatter(lambda i, _: round(qdft.frequencies[int(i) % qdft.size]))
 
+    plot.tight_layout()
+
     plot.show()
+
+    # plot.plot(np.arange(x.size) / sr, x)
+    # plot.xlabel('s')
+    # plot.ylim(-1.1, +1.1)
+    # plot.tight_layout()
+    # plot.show()
 
 
 if __name__ == '__main__':

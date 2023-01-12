@@ -46,7 +46,15 @@ def main():
     plot.gca().yaxis.set_major_locator(ticker.IndexLocator(1, 0))
     plot.gca().yaxis.set_major_formatter(lambda i, _: chroma.notes[int(i) % chroma.size])
 
+    plot.tight_layout()
+
     plot.show()
+
+    # plot.plot(np.arange(x.size) / sr, x)
+    # plot.xlabel('s')
+    # plot.ylim(-0.35, +0.35)
+    # plot.tight_layout()
+    # plot.show()
 
 
 if __name__ == '__main__':
