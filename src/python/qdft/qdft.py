@@ -143,7 +143,7 @@ class QDFT:
 
         return dfts[0]
 
-    def iqdft(dfts):
+    def iqdft(self, dfts):
         """
         Synthesize the sample array from the given DFT matrix.
 
