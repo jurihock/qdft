@@ -80,19 +80,15 @@ public:
 
     for (const int k : { -1, 0, +1 })
     {
-      std::complex<F>* const fiddles = data.fiddles.data() + 1;
-
       const std::complex<F> fiddle = std::polar(F(1), F(-2) * pi * (config.quality + k));
 
-      fiddles[k] = fiddle;
+      data.fiddles[1 + k] = fiddle;
 
       for (size_t i = 0, j = 1; i < config.size; ++i, j+=3)
       {
-        std::complex<F>* const twiddles = data.twiddles.data() + j;
-
         const std::complex<F> twiddle = std::polar(F(1), F(+2) * pi * (config.quality + k) / data.periods[i]);
 
-        twiddles[k] = twiddle;
+        data.twiddles[j + k] = twiddle;
       }
 
     }
