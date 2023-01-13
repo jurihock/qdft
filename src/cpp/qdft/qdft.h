@@ -136,7 +136,10 @@ public:
         const std::complex<F> twiddle = kernel.twiddles[i];
         const std::complex<F> fiddle = kernel.fiddle;
 
-        const std::complex<F> delta = (fiddle * inputs[offset + period] - inputs[offset]) * weight;
+        const F left = inputs[offset + period];
+        const F right = inputs[offset];
+
+        const std::complex<F> delta = (fiddle * left - right) * weight;
 
         outputs[i] = twiddle * (outputs[i] + delta);
       }

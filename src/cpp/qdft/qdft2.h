@@ -139,8 +139,8 @@ public:
         const F a = config.window.value().first;
         const F b = config.window.value().second / 2;
 
-        const T left = inputs[offset + period];
-        const T right = inputs[offset];
+        const F left = inputs[offset + period];
+        const F right = inputs[offset];
 
         const std::complex<F> delta1 = (fiddles[-1] * left - right) * weight;
         const std::complex<F> delta2 = (fiddles[ 0] * left - right) * weight;
@@ -169,8 +169,8 @@ public:
         const F a = config.window.value().first;
         const F b = config.window.value().second / 2;
 
-        const T left = inputs[offset + period];
-        const T right = inputs[offset];
+        const F left = inputs[offset + period];
+        const F right = inputs[offset];
 
         const std::complex<F> delta = (fiddle * left - right) * weight;
 
