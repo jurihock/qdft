@@ -18,6 +18,7 @@ Source: https://github.com/jurihock/qdft
 """
 
 
+import numba
 import numpy
 
 
@@ -44,7 +45,7 @@ class QDFT:
             Cosine family window coeffs, e.g. (+0.5,-0.5) in case of hann window.
         """
 
-        kernels = [0, +1, -1] if window is not None else [0]
+        kernels = numpy.array([0, +1, -1] if window is not None else [0])
 
         quality = (2 ** (1 / resolution) - 1) ** -1
         size = numpy.ceil(resolution * numpy.log2(bandwidth[1] / bandwidth[0])).astype(int)
@@ -52,23 +53,13 @@ class QDFT:
 
         periods = numpy.ceil(quality * samplerate / frequencies).astype(int)
         offsets = numpy.ceil((periods[0] - periods) * numpy.clip(latency * 0.5 + 0.5, 0, 1)).astype(int)
+        weights = 1 / periods
 
-        twiddles = [
-            numpy.exp(+2j * numpy.pi * (quality + k) / periods)
-            for k in kernels
-        ]
-
-        fiddles = [
-            numpy.exp(-2j * numpy.pi * (quality + k))
-            for k in kernels
-        ]
+        fiddles = numpy.exp(-2j * numpy.pi * (quality + kernels))
+        twiddles = numpy.exp(+2j * numpy.pi * (quality + kernels[:, None]) / periods)
 
         inputs = numpy.zeros(periods[0], dtype=float)
-
-        outputs = [
-            numpy.zeros(size, dtype=complex)
-            for k in kernels
-        ]
+        outputs = numpy.zeros((kernels.size, size), dtype=complex)
 
         self.samplerate = samplerate
         self.bandwidth = bandwidth
@@ -80,11 +71,15 @@ class QDFT:
         self.frequencies = frequencies
         self.periods = periods
         self.offsets = offsets
-        self.twiddles = twiddles
+        self.weights = weights
         self.fiddles = fiddles
+        self.twiddles = twiddles
         self.inputs = inputs
         self.outputs = outputs
         self.kernels = kernels
+
+        dfts = numpy.empty((kernels.size, 0, size), dtype=complex)
+        QDFT.accumulate(0, dfts, twiddles, outputs)
 
     def qdft(self, samples):
         """
@@ -103,6 +98,7 @@ class QDFT:
 
         samples = numpy.atleast_1d(samples).astype(float)
         assert samples.ndim == 1
+        assert samples.size >= 1
 
         inputs = numpy.concatenate((self.inputs, samples))
         self.inputs = inputs[samples.size:]
@@ -111,29 +107,19 @@ class QDFT:
 
         periods = self.periods
         offsets = self.offsets + numpy.arange(samples.size)[:, None]
+        weights = self.weights
 
-        twiddles = self.twiddles
         fiddles = self.fiddles
+        twiddles = self.twiddles
 
         window = self.window
         kernels = self.kernels
 
-        dfts = [
-            numpy.zeros((samples.size, self.size), dtype=complex)
-            for k in kernels
-        ]
+        dfts = (fiddles[:, None, None] * inputs[offsets + periods] - inputs[offsets]) * weights
 
-        for k in kernels:
+        QDFT.accumulate(samples.size, dfts, twiddles, outputs)
 
-            deltas = (fiddles[k] * inputs[offsets + periods] - inputs[offsets]) / periods
-
-            dfts[k][-1] = outputs[k]
-
-            for i in range(samples.size):
-
-                dfts[k][i] = twiddles[k] * (dfts[k][i - 1] + deltas[i])
-
-            outputs[k] = dfts[k][-1]
+        numpy.copyto(outputs, dfts[:, -1])
 
         if window is not None:
 
@@ -160,7 +146,19 @@ class QDFT:
 
         dfts = numpy.atleast_2d(dfts).astype(complex)
         assert dfts.ndim == 2
+        assert dfts.size >= 1
 
         samples = numpy.real(dfts * self.twiddles[0])
 
         return numpy.sum(samples, axis=1)
+
+    @numba.njit()
+    def accumulate(n, dfts, twiddles, identity):
+
+        if not n: return
+
+        dfts[:, 0] = twiddles * (identity + dfts[:, 0])
+
+        for i in range(1, n):
+
+            dfts[:, i] = twiddles * (dfts[:, i - 1] + dfts[:, i])
