@@ -61,6 +61,9 @@ class QDFT:
         inputs = numpy.zeros(periods[0], dtype=float)
         outputs = numpy.zeros((kernels.size, size), dtype=complex)
 
+        dfts = numpy.empty((kernels.size, 0, size), dtype=complex)
+        QDFT.accumulate(dfts, twiddles, outputs)
+
         self.samplerate = samplerate
         self.bandwidth = bandwidth
         self.resolution = resolution
@@ -77,9 +80,6 @@ class QDFT:
         self.inputs = inputs
         self.outputs = outputs
         self.kernels = kernels
-
-        dfts = numpy.empty((kernels.size, 0, size), dtype=complex)
-        QDFT.accumulate(0, dfts, twiddles, outputs)
 
     def qdft(self, samples):
         """
@@ -109,15 +109,15 @@ class QDFT:
         offsets = self.offsets + numpy.arange(samples.size)[:, None]
         weights = self.weights
 
-        fiddles = self.fiddles
+        fiddles = self.fiddles[:, None, None]
         twiddles = self.twiddles
 
         window = self.window
         kernels = self.kernels
 
-        dfts = (fiddles[:, None, None] * inputs[offsets + periods] - inputs[offsets]) * weights
+        dfts = (fiddles * inputs[offsets + periods] - inputs[offsets]) * weights
 
-        QDFT.accumulate(samples.size, dfts, twiddles, outputs)
+        QDFT.accumulate(dfts, twiddles, outputs)
 
         numpy.copyto(outputs, dfts[:, -1])
 
@@ -153,12 +153,12 @@ class QDFT:
         return numpy.sum(samples, axis=1)
 
     @numba.njit()
-    def accumulate(n, dfts, twiddles, identity):
+    def accumulate(dfts, twiddles, identity):
 
-        if not n: return
+        if not dfts.size: return
 
         dfts[:, 0] = twiddles * (identity + dfts[:, 0])
 
-        for i in range(1, n):
+        for i in range(1, dfts.shape[1]):
 
             dfts[:, i] = twiddles * (dfts[:, i - 1] + dfts[:, i])
