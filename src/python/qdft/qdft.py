@@ -101,8 +101,6 @@ class QDFT:
         assert samples.size >= 1
 
         inputs = numpy.concatenate((self.inputs, samples))
-        self.inputs = inputs[samples.size:]
-
         outputs = self.outputs
 
         periods = self.periods
@@ -119,7 +117,8 @@ class QDFT:
 
         QDFT.accumulate(dfts, twiddles, outputs)
 
-        numpy.copyto(outputs, dfts[:, -1])
+        numpy.copyto(self.inputs, inputs[samples.size:])
+        numpy.copyto(self.outputs, dfts[:, -1])
 
         if window is not None:
 
