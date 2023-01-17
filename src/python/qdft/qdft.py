@@ -38,9 +38,9 @@ class QDFT:
         bandwidth : tuple(float, float)
             Lowest and highest frequency in hertz to be resolved.
         resolution : int, optional
-            Octave resolution, e.g. number of bins per octave.
+            Octave resolution, e.g. number of DFT bins per octave.
         latency : float, optional
-            Analysis latency factor between -1 and +1.
+            Analysis latency adjustment between -1 and +1.
         window : tuple(float, float), optional
             Cosine family window coeffs, e.g. (+0.5,-0.5) in case of hann window.
         """
