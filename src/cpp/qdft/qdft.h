@@ -166,9 +166,6 @@ public:
         const std::complex<F>& fiddle = data.fiddles[1];
         const std::complex<F>& twiddle = data.twiddles[j];
 
-        const F a = config.window.value().first;
-        const F b = config.window.value().second / 2;
-
         const F left = inputs[offset + period];
         const F right = inputs[offset];
 
