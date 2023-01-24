@@ -23,6 +23,7 @@
 #include <cmath>
 #include <complex>
 #include <cstdlib>
+#include <deque>
 #include <map>
 #include <optional>
 #include <utility>
@@ -119,11 +120,10 @@ public:
 
   void qdft(const T sample, std::complex<F>* const dft)
   {
-    std::vector<T>& inputs = data.inputs;
+    std::deque<T>& inputs = data.inputs;
 
-    std::rotate(inputs.begin(), inputs.begin() + 1, inputs.end());
-
-    inputs.back() = sample;
+    inputs.pop_front();
+    inputs.push_back(sample);
 
     if (config.window)
     {
@@ -238,7 +238,7 @@ private:
     std::vector<std::complex<F>> fiddles;
     std::vector<std::complex<F>> twiddles;
 
-    std::vector<T> inputs;
+    std::deque<T> inputs;
     std::vector<std::complex<F>> outputs;
   };
 
