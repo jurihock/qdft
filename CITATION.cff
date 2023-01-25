@@ -22,13 +22,6 @@ references:
         given-names: Russell
     url: http://hdl.handle.net/2027/spo.bbp2372.2005.086
     type: article
-  - title: "Accurate, Guaranteed Stable, Sliding Discrete Fourier Transform"
-    authors:
-      - family-names: Duda
-        given-names: Krzysztof
-    url: https://ieeexplore.ieee.org/document/5563098
-    doi: 10.1109/MSP.2010.938088
-    type: article
   - title: "Fast, Accurate Frequency Estimators"
     authors:
       - family-names: Jacobsen
