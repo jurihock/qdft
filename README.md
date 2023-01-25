@@ -20,6 +20,55 @@ Forward and inverse Constant-Q Sliding DFT according to [[1]](#1) with following
 - [x] PyPI package [qdft](https://pypi.org/project/qdft)
 - [ ] Sliding [chromagram](https://en.wikipedia.org/wiki/Chroma_feature) as a bonus
 
+## Basic usage
+
+### C++
+
+```c++
+#include <qdft/qdft.h> // see also src/cpp folder
+
+double sr = 44100;                             // sample rate in hertz
+std::pair<double, double> bw = { 50, sr / 2 }; // lowest and highest frequency in hertz to be resolved
+double r = 24;                                 // octave resolution, e.g. number of DFT bins per octave
+
+QDFT<float, double> qdft(sr, bw, r); // create qdft plan for custom time and frequency domain data types
+
+size_t n = ...;         // number of samples
+size_t m = qdft.size(); // number of dft bins
+
+float* x = ...; // analysis samples of shape (n)
+float* y = ...; // synthesis samples of shape (n)
+
+std::complex<double>* dft = ...; // dft matrix of shape (n, m)
+
+qdft.qdft(n, x, dft);  // extract dft matrix from input samples
+qdft.iqdft(n, dft, y); // synthesize output samples from dft matrix
+```
+
+The time domain data type defaults to `float` and the frequency domain data type to `double`.
+
+### Python
+
+```python
+from qdft import QDFT # see also src/python folder
+
+sr = 44100        # sample rate in hertz
+bw = (50, sr / 2) # lowest and highest frequency in hertz to be resolved
+r = 24            # octave resolution, e.g. number of DFT bins per octave
+
+qdft = QDFT(sr, bw, r) # create qdft plan
+
+n = ...       # number of samples
+m = qdft.size # number of dft bins (if need to know in advance)
+
+x = ... # analysis samples of shape (n)
+
+dft = qdft.qdft(x)  # extract dft matrix of shape (n, m) from input samples
+y = qdft.iqdft(dft) # synthesize output samples from dft matrix
+```
+
+Feel free to obtain current version from [PyPI](https://pypi.org/project/qdft) by executing `pip install qdft`.
+
 ## Examples
 
 | QDFT | Chroma12 |
