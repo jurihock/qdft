@@ -49,7 +49,7 @@ public:
     config.latency = latency;
     config.window = window;
     config.quality = std::pow(std::pow(2.0, 1.0 / resolution) - 1.0, -1.0);
-    config.size = std::ceil(resolution * std::log2(bandwidth.second / bandwidth.first));
+    config.size = static_cast<size_t>(std::ceil(resolution * std::log2(bandwidth.second / bandwidth.first)));
 
     data.frequencies.resize(config.size);
     data.periods.resize(config.size);
