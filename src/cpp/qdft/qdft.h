@@ -20,6 +20,7 @@
 #pragma once
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <complex>
 #include <cstdlib>
@@ -91,11 +92,30 @@ public:
 
         data.twiddles[j + k] = twiddle;
       }
-
     }
 
     data.inputs.resize(data.periods.front() + 1);
     data.outputs.resize(config.size * 3);
+
+    #ifndef NDEBUG
+    for (size_t i = 0, j = 1; i < config.size; ++i, j+=3)
+    {
+      assert((data.offsets[i]) < data.inputs.size());
+      assert((data.offsets[i] + data.periods[i]) < data.inputs.size());
+
+      assert((-1 + 1) < data.fiddles.size());
+      assert(( 0 + 1) < data.fiddles.size());
+      assert((+1 + 1) < data.fiddles.size());
+
+      assert((-1 + j) < data.twiddles.size());
+      assert(( 0 + j) < data.twiddles.size());
+      assert((+1 + j) < data.twiddles.size());
+
+      assert((-1 + j) < data.outputs.size());
+      assert(( 0 + j) < data.outputs.size());
+      assert((+1 + j) < data.outputs.size());
+    }
+    #endif
   }
 
   size_t size() const
