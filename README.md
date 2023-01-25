@@ -13,12 +13,14 @@ Forward and inverse Constant-Q Sliding DFT according to [[1]](#1) with following
 - Optional analysis latency control parameter
 - Real-time analysis and synthesis capability
 
+The Constant-Q Sliding Discrete Fourier Transform (QDFT) is a recursive approach to compute the Fourier transform sample by sample. This is an efficient implementation without FFT calculus. Just define an arbitrary frequency range and octave resolution to obtain the corresponding DFT estimate. In contrast to the linear [SDFT](https://github.com/jurihock/sdft), frequency bins of the QDFT are logarithmically spaced. Thus, both high and low frequencies are resolved with the same quality, which is particularly useful for audio analysis.
+
 ## WIP
 
-- [ ] Readme
+- [x] Readme
 - [ ] Docstrings
 - [x] PyPI package [qdft](https://pypi.org/project/qdft)
-- [ ] Sliding [chromagram](https://en.wikipedia.org/wiki/Chroma_feature) as a bonus
+- [ ] Sliding [chromagram](https://en.wikipedia.org/wiki/Chroma_feature) as a bonus (a draft is already included in the Python package)
 
 ## Basic usage
 
