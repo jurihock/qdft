@@ -59,10 +59,10 @@ class QDFT:
         twiddles = numpy.exp(+2j * numpy.pi * (quality + kernels[:, None]) / periods)
 
         inputs = numpy.zeros(periods[0], dtype=float)
-        outputs = numpy.zeros((kernels.size, size), dtype=complex)
+        outputs = numpy.zeros((size, kernels.size), dtype=complex)
 
-        dfts = numpy.empty((kernels.size, 0, size), dtype=complex)
-        QDFT.accumulate(dfts, twiddles, outputs)
+        dfts = numpy.zeros((0, size, kernels.size), dtype=complex)
+        QDFT.transform(dfts, inputs, outputs, periods, offsets, weights, fiddles, twiddles, window)
 
         self.samplerate = samplerate
         self.bandwidth = bandwidth
@@ -79,7 +79,6 @@ class QDFT:
         self.twiddles = twiddles
         self.inputs = inputs
         self.outputs = outputs
-        self.kernels = kernels
 
     def qdft(self, samples):
         """
@@ -102,31 +101,20 @@ class QDFT:
 
         inputs = numpy.concatenate((self.inputs, samples))
         outputs = self.outputs
-
         periods = self.periods
-        offsets = self.offsets + numpy.arange(samples.size)[:, None]
+        offsets = self.offsets
         weights = self.weights
-
-        fiddles = self.fiddles[:, None, None]
+        fiddles = self.fiddles
         twiddles = self.twiddles
-
         window = self.window
-        kernels = self.kernels
-
-        dfts = (fiddles * inputs[offsets + periods] - inputs[offsets]) * weights
-
-        QDFT.accumulate(dfts, twiddles, outputs)
 
         numpy.copyto(self.inputs, inputs[samples.size:])
-        numpy.copyto(self.outputs, dfts[:, -1])
 
-        if window is not None:
+        dfts = numpy.zeros((samples.size, self.size, 3), complex)
 
-            a, b = window[0], window[1] / 2
+        QDFT.transform(dfts, inputs, outputs, periods, offsets, weights, fiddles, twiddles, window)
 
-            return a * dfts[0] + b * (dfts[-1] + dfts[+1])
-
-        return dfts[0]
+        return dfts[..., 0]
 
     def iqdft(self, dfts):
         """
@@ -152,12 +140,31 @@ class QDFT:
         return numpy.sum(samples, axis=1)
 
     @numba.njit()
-    def accumulate(dfts, twiddles, identity):
+    def transform(dfts, inputs, outputs, periods, offsets, weights, fiddles, twiddles, window):
 
         if not dfts.size: return
 
-        dfts[:, 0] = twiddles * (identity + dfts[:, 0])
+        dfts[-1] = outputs
 
-        for i in range(1, dfts.shape[1]):
+        for i in range(dfts.shape[0]):
 
-            dfts[:, i] = twiddles * (dfts[:, i - 1] + dfts[:, i])
+            for j in range(dfts.shape[1]):
+
+                left = inputs[offsets[j] + periods[j] + i]
+                right = inputs[offsets[j] + i]
+
+                delta0 = (fiddles[0] * left - right) * weights[j]
+                delta1 = (fiddles[1] * left - right) * weights[j]
+                delta2 = (fiddles[2] * left - right) * weights[j]
+
+                dfts[i, j, 0] = twiddles[0, j] * (dfts[i - 1, j, 0] + delta0)
+                dfts[i, j, 1] = twiddles[1, j] * (dfts[i - 1, j, 1] + delta1)
+                dfts[i, j, 2] = twiddles[2, j] * (dfts[i - 1, j, 2] + delta2)
+
+        outputs = dfts[-1]
+
+        if window is not None:
+
+            a, b = window[0], window[1] / 2
+
+            dfts[..., 0] = a * dfts[..., 0] + b * (dfts[..., 1] + dfts[..., 2])
