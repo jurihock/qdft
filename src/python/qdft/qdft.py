@@ -45,13 +45,7 @@ class QDFT:
             Cosine family window coeffs, e.g. (+0.5,-0.5) in case of hann window.
         """
 
-        kernels = numpy.array([0, +1, -1]) \
-                  if window is not None else \
-                  numpy.array([0])
-
-        window = numpy.array([window[0], window[+1]/2, window[-1]/2]) \
-                 if window is not None else \
-                 numpy.array([1])
+        kernels = numpy.array([0, +1, -1] if window is not None else [0])
 
         quality = (2 ** (1 / resolution) - 1) ** -1
         size = numpy.ceil(resolution * numpy.log2(bandwidth[1] / bandwidth[0])).astype(int)
@@ -68,13 +62,19 @@ class QDFT:
         outputs = numpy.zeros((size, kernels.size), dtype=complex)
 
         dfts = numpy.zeros((0, size, kernels.size), dtype=complex)
-        QDFT.transform(dfts, inputs, outputs, periods, offsets, weights, fiddles, twiddles, window)
+        dfts = QDFT.analyze(dfts, inputs, outputs, periods, offsets, weights, fiddles, twiddles, window)
+        assert dfts.shape == (0, size, )
+
+        samples = numpy.zeros((0), dtype=float)
+        samples = QDFT.synthesize(dfts, samples, twiddles)
+        assert samples.shape == (0, )
 
         self.samplerate = samplerate
         self.bandwidth = bandwidth
         self.resolution = resolution
         self.latency = latency
         self.window = window
+        self.kernels = kernels
         self.quality = quality
         self.size = size
         self.frequencies = frequencies
@@ -113,12 +113,14 @@ class QDFT:
         fiddles = self.fiddles
         twiddles = self.twiddles
         window = self.window
+        kernels = self.kernels
+        size = self.size
 
         numpy.copyto(self.inputs, inputs[samples.size:])
 
-        dfts = numpy.zeros((samples.size, self.size, self.window.size), complex)
+        dfts = numpy.zeros((samples.size, size, kernels.size), complex)
 
-        return QDFT.transform(dfts, inputs, outputs, periods, offsets, weights, fiddles, twiddles, window)
+        return QDFT.analyze(dfts, inputs, outputs, periods, offsets, weights, fiddles, twiddles, window)
 
     def iqdft(self, dfts):
         """
@@ -139,18 +141,21 @@ class QDFT:
         assert dfts.ndim == 2
         assert dfts.size >= 1
 
-        samples = numpy.real(dfts * self.twiddles[0])
+        twiddles = self.twiddles
 
-        return numpy.sum(samples, axis=1)
+        samples = numpy.zeros(len(dfts), float)
+
+        return QDFT.synthesize(dfts, samples, twiddles)
 
     @numba.njit()
-    def transform(dfts, inputs, outputs, periods, offsets, weights, fiddles, twiddles, window):
+    def analyze(dfts, inputs, outputs, periods, offsets, weights, fiddles, twiddles, window):
 
-        if not dfts.size: return
+        if not dfts.size:
+            return dfts[..., 0]
 
         dfts[-1] = outputs
 
-        if window.size == 3:
+        if window is not None:
 
             for i in range(dfts.shape[0]):
 
@@ -159,13 +164,13 @@ class QDFT:
                     left = inputs[offsets[j] + periods[j] + i]
                     right = inputs[offsets[j] + i]
 
-                    delta0 = (fiddles[0] * left - right) * weights[j]
-                    delta1 = (fiddles[1] * left - right) * weights[j]
-                    delta2 = (fiddles[2] * left - right) * weights[j]
+                    delta1 = (fiddles[-1] * left - right) * weights[j]
+                    delta2 = (fiddles[ 0] * left - right) * weights[j]
+                    delta3 = (fiddles[+1] * left - right) * weights[j]
 
-                    dfts[i, j, 0] = twiddles[0, j] * (dfts[i - 1, j, 0] + delta0)
-                    dfts[i, j, 1] = twiddles[1, j] * (dfts[i - 1, j, 1] + delta1)
-                    dfts[i, j, 2] = twiddles[2, j] * (dfts[i - 1, j, 2] + delta2)
+                    dfts[i, j, -1] = twiddles[-1, j] * (dfts[i - 1, j, -1] + delta1)
+                    dfts[i, j,  0] = twiddles[ 0, j] * (dfts[i - 1, j,  0] + delta2)
+                    dfts[i, j, +1] = twiddles[+1, j] * (dfts[i - 1, j, +1] + delta3)
 
         else:
 
@@ -176,12 +181,34 @@ class QDFT:
                     left = inputs[offsets[j] + periods[j] + i]
                     right = inputs[offsets[j] + i]
 
-                    delta0 = (fiddles[0] * left - right) * weights[j]
+                    delta = (fiddles[0] * left - right) * weights[j]
 
-                    dfts[i, j, 0] = twiddles[0, j] * (dfts[i - 1, j, 0] + delta0)
+                    dfts[i, j, 0] = twiddles[0, j] * (dfts[i - 1, j, 0] + delta)
 
         outputs = dfts[-1]
 
-        dfts *= window
+        if window is not None:
 
-        return dfts.sum(axis=-1)
+            a, b = window[0], window[1] / 2
+
+            for i in range(dfts.shape[0]):
+
+                for j in range(dfts.shape[1]):
+
+                    dfts[i, j, 0] = a * dfts[i, j, 0] + b * (dfts[i, j, -1] + dfts[i, j, +1])
+
+        return dfts[..., 0]
+
+    @numba.njit()
+    def synthesize(dfts, samples, twiddles):
+
+        if not dfts.size:
+            return samples
+
+        for i in range(dfts.shape[0]):
+
+            for j in range(dfts.shape[1]):
+
+                samples[i] += numpy.real(dfts[i, j] * twiddles[0][j])
+
+        return samples
