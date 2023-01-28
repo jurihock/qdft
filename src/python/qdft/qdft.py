@@ -157,11 +157,9 @@ class QDFT:
                 left = inputs[offsets[j] + periods[j] + i]
                 right = inputs[offsets[j] + i]
 
-                for k in range(dfts.shape[2]):
+                deltas = (fiddles * left - right) * weights[j]
 
-                    delta = (fiddles[k] * left - right) * weights[j]
-
-                    dfts[i, j, k] = twiddles[k, j] * (dfts[i - 1, j, k] + delta)
+                dfts[i, j] = twiddles[..., j] * (dfts[i - 1, j] + deltas)
 
         outputs = dfts[-1]
 
