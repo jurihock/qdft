@@ -49,9 +49,9 @@ class QDFT:
                   if window is not None else \
                   numpy.array([0])
 
-        window = numpy.array([window[0], window[+1]/2, window[-1]/2])[None, None, :] \
+        window = numpy.array([window[0], window[+1]/2, window[-1]/2]) \
                  if window is not None else \
-                 numpy.array([1])[None, None, :]
+                 numpy.array([1])
 
         quality = (2 ** (1 / resolution) - 1) ** -1
         size = numpy.ceil(resolution * numpy.log2(bandwidth[1] / bandwidth[0])).astype(int)
@@ -152,14 +152,12 @@ class QDFT:
 
         for i in range(dfts.shape[0]):
 
-            for j in range(dfts.shape[1]):
+            left = inputs[offsets + periods + i].reshape((-1, 1))
+            right = inputs[offsets + i].reshape((-1, 1))
 
-                left = inputs[offsets[j] + periods[j] + i]
-                right = inputs[offsets[j] + i]
+            deltas = (fiddles * left - right) * weights.reshape((-1, 1))
 
-                deltas = (fiddles * left - right) * weights[j]
-
-                dfts[i, j] = twiddles[..., j] * (dfts[i - 1, j] + deltas)
+            dfts[i] = twiddles.T * (dfts[i - 1] + deltas)
 
         outputs = dfts[-1]
 
