@@ -45,7 +45,13 @@ class QDFT:
             Cosine family window coeffs, e.g. (+0.5,-0.5) in case of hann window.
         """
 
-        kernels = numpy.array([0, +1, -1] if window is not None else [0])
+        kernels = numpy.array([0, +1, -1]) \
+                  if window is not None else \
+                  numpy.array([0])
+
+        window = numpy.array([window[0], window[+1]/2, window[-1]/2])[None, None, :] \
+                 if window is not None else \
+                 numpy.array([1])[None, None, :]
 
         quality = (2 ** (1 / resolution) - 1) ** -1
         size = numpy.ceil(resolution * numpy.log2(bandwidth[1] / bandwidth[0])).astype(int)
@@ -110,11 +116,9 @@ class QDFT:
 
         numpy.copyto(self.inputs, inputs[samples.size:])
 
-        dfts = numpy.zeros((samples.size, self.size, 3), complex)
+        dfts = numpy.zeros((samples.size, self.size, self.window.size), complex)
 
-        QDFT.transform(dfts, inputs, outputs, periods, offsets, weights, fiddles, twiddles, window)
-
-        return dfts[..., 0]
+        return QDFT.transform(dfts, inputs, outputs, periods, offsets, weights, fiddles, twiddles, window)
 
     def iqdft(self, dfts):
         """
@@ -153,18 +157,14 @@ class QDFT:
                 left = inputs[offsets[j] + periods[j] + i]
                 right = inputs[offsets[j] + i]
 
-                delta0 = (fiddles[0] * left - right) * weights[j]
-                delta1 = (fiddles[1] * left - right) * weights[j]
-                delta2 = (fiddles[2] * left - right) * weights[j]
+                for k in range(dfts.shape[2]):
 
-                dfts[i, j, 0] = twiddles[0, j] * (dfts[i - 1, j, 0] + delta0)
-                dfts[i, j, 1] = twiddles[1, j] * (dfts[i - 1, j, 1] + delta1)
-                dfts[i, j, 2] = twiddles[2, j] * (dfts[i - 1, j, 2] + delta2)
+                    delta = (fiddles[k] * left - right) * weights[j]
+
+                    dfts[i, j, k] = twiddles[k, j] * (dfts[i - 1, j, k] + delta)
 
         outputs = dfts[-1]
 
-        if window is not None:
+        dfts *= window
 
-            a, b = window[0], window[1] / 2
-
-            dfts[..., 0] = a * dfts[..., 0] + b * (dfts[..., 1] + dfts[..., 2])
+        return dfts.sum(axis=-1)
