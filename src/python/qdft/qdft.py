@@ -150,18 +150,35 @@ class QDFT:
 
         dfts[-1] = outputs
 
-        for i in range(dfts.shape[0]):
+        if window.size == 3:
 
-            for j in range(dfts.shape[1]):
+            for i in range(dfts.shape[0]):
 
-                left = inputs[offsets[j] + periods[j] + i]
-                right = inputs[offsets[j] + i]
+                for j in range(dfts.shape[1]):
 
-                for k in range(dfts.shape[2]):
+                    left = inputs[offsets[j] + periods[j] + i]
+                    right = inputs[offsets[j] + i]
 
-                    delta = (fiddles[k] * left - right) * weights[j]
+                    delta0 = (fiddles[0] * left - right) * weights[j]
+                    delta1 = (fiddles[1] * left - right) * weights[j]
+                    delta2 = (fiddles[2] * left - right) * weights[j]
 
-                    dfts[i, j, k] = twiddles[k, j] * (dfts[i - 1, j, k] + delta)
+                    dfts[i, j, 0] = twiddles[0, j] * (dfts[i - 1, j, 0] + delta0)
+                    dfts[i, j, 1] = twiddles[1, j] * (dfts[i - 1, j, 1] + delta1)
+                    dfts[i, j, 2] = twiddles[2, j] * (dfts[i - 1, j, 2] + delta2)
+
+        else:
+
+            for i in range(dfts.shape[0]):
+
+                for j in range(dfts.shape[1]):
+
+                    left = inputs[offsets[j] + periods[j] + i]
+                    right = inputs[offsets[j] + i]
+
+                    delta0 = (fiddles[0] * left - right) * weights[j]
+
+                    dfts[i, j, 0] = twiddles[0, j] * (dfts[i - 1, j, 0] + delta0)
 
         outputs = dfts[-1]
 
