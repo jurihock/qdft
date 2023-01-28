@@ -153,7 +153,7 @@ class QDFT:
         if not dfts.size:
             return dfts[..., 0]
 
-        dfts[-1] = outputs
+        dfts[-1] = outputs[:]
 
         if window is not None:
 
@@ -185,7 +185,7 @@ class QDFT:
 
                     dfts[i, j, 0] = twiddles[0, j] * (dfts[i - 1, j, 0] + delta)
 
-        outputs = dfts[-1]
+        outputs[:] = dfts[-1]
 
         if window is not None:
 
