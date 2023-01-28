@@ -62,11 +62,11 @@ class QDFT:
         outputs = numpy.zeros((size, kernels.size), dtype=complex)
 
         dfts = numpy.zeros((0, size, kernels.size), dtype=complex)
-        dfts = QDFT.analyze(dfts, inputs, outputs, periods, offsets, weights, fiddles, twiddles, window)
+        dfts = self.__analyze__(dfts, inputs, outputs, periods, offsets, weights, fiddles, twiddles, window)
         assert dfts.shape == (0, size, )
 
         samples = numpy.zeros((0), dtype=float)
-        samples = QDFT.synthesize(dfts, samples, twiddles)
+        samples = self.__synthesize__(dfts, samples, twiddles)
         assert samples.shape == (0, )
 
         self.samplerate = samplerate
@@ -120,7 +120,7 @@ class QDFT:
 
         dfts = numpy.zeros((samples.size, size, kernels.size), complex)
 
-        return QDFT.analyze(dfts, inputs, outputs, periods, offsets, weights, fiddles, twiddles, window)
+        return self.__analyze__(dfts, inputs, outputs, periods, offsets, weights, fiddles, twiddles, window)
 
     def iqdft(self, dfts):
         """
@@ -145,10 +145,11 @@ class QDFT:
 
         samples = numpy.zeros(len(dfts), float)
 
-        return QDFT.synthesize(dfts, samples, twiddles)
+        return self.__synthesize__(dfts, samples, twiddles)
 
+    @staticmethod
     @numba.jit(nopython=True, fastmath=True)
-    def analyze(dfts, inputs, outputs, periods, offsets, weights, fiddles, twiddles, window):
+    def __analyze__(dfts, inputs, outputs, periods, offsets, weights, fiddles, twiddles, window):
 
         if not dfts.size:
             return dfts[..., 0]
@@ -199,8 +200,9 @@ class QDFT:
 
         return dfts[..., 0]
 
+    @staticmethod
     @numba.jit(nopython=True, fastmath=True)
-    def synthesize(dfts, samples, twiddles):
+    def __synthesize__(dfts, samples, twiddles):
 
         if not dfts.size:
             return samples
