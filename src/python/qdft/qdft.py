@@ -152,12 +152,16 @@ class QDFT:
 
         for i in range(dfts.shape[0]):
 
-            left = inputs[offsets + periods + i].reshape((-1, 1))
-            right = inputs[offsets + i].reshape((-1, 1))
+            for j in range(dfts.shape[1]):
 
-            deltas = (fiddles * left - right) * weights.reshape((-1, 1))
+                left = inputs[offsets[j] + periods[j] + i]
+                right = inputs[offsets[j] + i]
 
-            dfts[i] = twiddles.T * (dfts[i - 1] + deltas)
+                for k in range(dfts.shape[2]):
+
+                    delta = (fiddles[k] * left - right) * weights[j]
+
+                    dfts[i, j, k] = twiddles[k, j] * (dfts[i - 1, j, k] + delta)
 
         outputs = dfts[-1]
 
