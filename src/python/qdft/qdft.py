@@ -147,7 +147,7 @@ class QDFT:
 
         return QDFT.synthesize(dfts, samples, twiddles)
 
-    @numba.njit()
+    @numba.jit(nopython=True, fastmath=True)
     def analyze(dfts, inputs, outputs, periods, offsets, weights, fiddles, twiddles, window):
 
         if not dfts.size:
@@ -199,7 +199,7 @@ class QDFT:
 
         return dfts[..., 0]
 
-    @numba.njit()
+    @numba.jit(nopython=True, fastmath=True)
     def synthesize(dfts, samples, twiddles):
 
         if not dfts.size:
