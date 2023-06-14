@@ -1,5 +1,5 @@
 import os, sys
-src = os.path.join(os.path.dirname(__file__), '..', 'src', 'python')
+src = os.path.join(os.path.dirname(__file__), '..', 'src')
 sys.path.insert(0, src)
 
 from qdft import QDFT

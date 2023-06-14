@@ -75,9 +75,9 @@ Feel free to obtain current version from [PyPI](https://pypi.org/project/qdft) b
 
 | QDFT | Chroma12 |
 | :--: | :------: |
-| ![SDFT](https://github.com/jurihock/qdft/raw/main/examples/face.png) | ![STFT](https://github.com/jurihock/qdft/raw/main/examples/cmajor.png) |
-| [face.py](https://github.com/jurihock/qdft/blob/main/examples/face.py) | [cmajor.py](https://github.com/jurihock/qdft/blob/main/examples/cmajor.py) |
-| ![SDFT](https://github.com/jurihock/qdft/raw/main/examples/face.wav.png) | ![STFT](https://github.com/jurihock/qdft/raw/main/examples/cmajor.wav.png) |
+| ![SDFT](https://github.com/jurihock/qdft/raw/main/python/examples/face.png) | ![STFT](https://github.com/jurihock/qdft/raw/main/python/examples/cmajor.png) |
+| [face.py](https://github.com/jurihock/qdft/blob/main/python/examples/face.py) | [cmajor.py](https://github.com/jurihock/qdft/blob/main/python/examples/cmajor.py) |
+| ![SDFT](https://github.com/jurihock/qdft/raw/main/python/examples/face.wav.png) | ![STFT](https://github.com/jurihock/qdft/raw/main/python/examples/cmajor.wav.png) |
 
 ## See also
 
