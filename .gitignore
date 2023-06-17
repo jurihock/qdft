@@ -4,6 +4,9 @@
 build*/
 cmake-build*/
 
+target/
+Cargo.lock
+
 dist/
 *.egg-info/
 

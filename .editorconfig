@@ -9,6 +9,10 @@ trim_trailing_whitespace = true
 indent_style = space
 indent_size = 4
 
+[*.rs]
+indent_style = space
+indent_size = 4
+
 [*.{h,c,cpp}]
 indent_style = space
 indent_size = 2
