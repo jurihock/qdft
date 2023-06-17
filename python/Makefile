@@ -17,7 +17,9 @@ boot:
 
 build:
 	@rm -rf dist
+	@cp -f ../LICENSE ../README.md .
 	@python3 -m build
+	@rm -rf LICENSE README.md
 
 install:
 	@python3 -m pip install qdft
