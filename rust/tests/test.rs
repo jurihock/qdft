@@ -1,10 +1,12 @@
 #[cfg(test)]
 mod tests {
 
-    use num::One;
-    use num::Zero;
-    use num::complex::Complex;
     use qdft::QDFT;
+
+    use num::{One, Zero};
+
+    #[allow(non_camel_case_types)]
+    type c64 = num::complex::Complex<f64>;
 
     #[test]
     fn test_one_in_zero_out() {
@@ -22,16 +24,16 @@ mod tests {
             window);
 
         let n = 1;
-        let m = n * qdft.size();
+        let m = qdft.size();
 
         let mut samples = vec![f32::zero(); n];
-        let mut dfts = vec![Complex::<f64>::zero(); m];
+        let mut dfts = vec![c64::zero(); n * m];
 
-        dfts[0] = Complex::one();
-        assert_ne!(dfts[0], Complex::zero());
+        dfts[0] = c64::one();
+        assert_ne!(dfts[0], c64::zero());
 
         qdft.qdft(&samples, &mut dfts);
-        assert_eq!(dfts[0], Complex::zero());
+        assert_eq!(dfts[0], c64::zero());
 
         samples[0] = f32::one();
         assert_ne!(samples[0], f32::zero());

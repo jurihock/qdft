@@ -13,6 +13,7 @@ clean:
 example:
 	@cargo build --examples
 	@cargo run --example analysis
+	@python examples/analysis.py
 
 test:
 	@cargo build --tests

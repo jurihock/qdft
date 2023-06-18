@@ -1,7 +1,6 @@
 #![allow(unused)]
 
-use num::Float;
-use num::Zero;
+use num::{Float, Zero};
 use num::complex::Complex;
 use std::collections::VecDeque;
 
@@ -278,6 +277,6 @@ mod tests {
         }
 
         assert_eq!(i, qdft.size);
-        assert_eq!(j, (qdft.size as isize) * 3 + 1);
+        assert_eq!(j, (qdft.size * 3 + 1) as isize);
     }
 }
