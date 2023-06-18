@@ -84,7 +84,7 @@ public:
     {
       const std::complex<F> fiddle = std::polar(F(1), F(-2) * pi * (config.quality + k));
 
-      data.fiddles[1 + k] = fiddle;
+      data.fiddles[k + 1] = fiddle;
 
       for (size_t i = 0, j = 1; i < config.size; ++i, j+=3)
       {
