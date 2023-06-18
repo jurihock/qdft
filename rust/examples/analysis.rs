@@ -17,8 +17,10 @@ fn main() {
         window);
 
     let n = 1;
+    let m = n * qdft.size();
+
     let mut samples = vec![f32::zero(); n];
-    let mut dfts = vec![Complex::<f64>::zero(); n];
+    let mut dfts = vec![Complex::<f64>::zero(); m];
 
     qdft.qdft(&samples, &mut dfts);
     qdft.iqdft(&dfts, &mut samples);

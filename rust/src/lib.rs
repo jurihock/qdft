@@ -45,7 +45,7 @@ impl<T, F> QDFT<T, F>
         let mut offsets = vec![usize::zero(); size];
         let mut weights = vec![F::zero(); size];
 
-        for i in 0..size {
+        for i in 0 .. size {
           let frequency = bandwidth.0 * f64::powf(2.0, (i as f64) / resolution);
           frequencies[i] = frequency;
 
@@ -107,25 +107,45 @@ impl<T, F> QDFT<T, F>
         }
     }
 
-    pub fn qdft_scalar(&mut self, sample: &T, dft: &mut Complex::<F>) {
-        *dft = Complex::<F>::zero();
+    pub fn size(&self) -> usize { self.size }
+
+    pub fn qdft_scalar(&mut self, sample: &T, dft: &mut [Complex::<F>]) {
+        dft[0] = Complex::<F>::zero(); // TODO
     }
 
-    pub fn iqdft_scalar(&mut self, dft: &Complex::<F>, sample: &mut T) {
-        *sample = T::zero();
+    pub fn iqdft_scalar(&mut self, dft: &[Complex::<F>], sample: &mut T) {
+        debug_assert_eq!(dft.len(), self.size);
+
+        let mut result = F::zero();
+
+        let mut i = 0;
+        let mut j = 1;
+
+        while i < self.size {
+            let twiddle = &self.twiddles[j];
+            result = result + (dft[i] * twiddle).re;
+            i += 1;
+            j += 3;
+        }
+
+        *sample = T::from(result).unwrap();
     }
 
     #[inline]
     pub fn qdft_vector(&mut self, samples: &[T], dfts: &mut [Complex::<F>]) {
-        for i in 0..samples.len() {
-            self.qdft_scalar(&samples[i], &mut dfts[i]);
+        debug_assert_eq!(dfts.len(), self.size * samples.len());
+        for i in 0 .. samples.len() {
+            let j = i * self.size .. (i + 1) * self.size;
+            self.qdft_scalar(&samples[i], &mut dfts[j]);
         }
     }
 
     #[inline]
     pub fn iqdft_vector(&mut self, dfts: &[Complex::<F>], samples: &mut [T]) {
-        for i in 0..samples.len() {
-            self.iqdft_scalar(&dfts[i], &mut samples[i]);
+        debug_assert_eq!(dfts.len(), self.size * samples.len());
+        for i in 0 .. samples.len() {
+            let j = i * self.size .. (i + 1) * self.size;
+            self.iqdft_scalar(&dfts[j], &mut samples[i]);
         }
     }
 

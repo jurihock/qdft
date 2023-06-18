@@ -22,8 +22,10 @@ mod tests {
             window);
 
         let n = 1;
+        let m = n * qdft.size();
+
         let mut samples = vec![f32::zero(); n];
-        let mut dfts = vec![Complex::<f64>::zero(); n];
+        let mut dfts = vec![Complex::<f64>::zero(); m];
 
         dfts[0] = Complex::one();
         assert_ne!(dfts[0], Complex::zero());
