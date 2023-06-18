@@ -110,7 +110,80 @@ impl<T, F> QDFT<T, F>
     pub fn size(&self) -> usize { self.size }
 
     pub fn qdft_scalar(&mut self, sample: &T, dft: &mut [Complex::<F>]) {
-        dft[0] = Complex::<F>::zero(); // TODO
+        debug_assert_eq!(dft.len(), self.size);
+
+        let inputs = &mut self.inputs;
+        let outputs = &mut self.outputs;
+
+        inputs.pop_front();
+        inputs.push_back(*sample);
+
+        if self.window.is_some() {
+            let w = self.window.unwrap();
+            let a = F::from(w.0).unwrap();
+            let b = F::from(w.1 / 2.0).unwrap();
+
+            let mut i = 0;
+            let mut j = 1;
+
+            while i < self.size {
+                let period = self.periods[i];
+                let offset = self.offsets[i];
+                let weight = self.weights[i];
+
+                let fiddles = &self.fiddles;
+                let twiddles = &self.twiddles;
+
+                let left = F::from(inputs[offset + period]).unwrap();
+                let right = F::from(inputs[offset]).unwrap();
+
+                let deltas = (
+                    (fiddles[0] * left - right) * weight,
+                    (fiddles[1] * left - right) * weight,
+                    (fiddles[2] * left - right) * weight,
+                );
+
+                let k = (
+                    (-1 + j) as usize,
+                    ( 0 + j) as usize,
+                    ( 1 + j) as usize,
+                );
+
+                outputs[k.0] = twiddles[k.0] * (outputs[k.0] + deltas.0);
+                outputs[k.1] = twiddles[k.1] * (outputs[k.1] + deltas.1);
+                outputs[k.2] = twiddles[k.2] * (outputs[k.2] + deltas.2);
+
+                dft[i] = outputs[k.1] * a + (outputs[k.0] + outputs[k.2]) * b;
+
+                i += 1;
+                j += 3;
+            }
+        }
+        else {
+            let mut i = 0;
+            let mut j = 1;
+
+            while i < self.size {
+                let period = self.periods[i];
+                let offset = self.offsets[i];
+                let weight = self.weights[i];
+
+                let fiddle = self.fiddles[1];
+                let twiddle = self.twiddles[j];
+
+                let left = F::from(inputs[offset + period]).unwrap();
+                let right = F::from(inputs[offset]).unwrap();
+
+                let delta = (fiddle * left - right) * weight;
+
+                outputs[j] = twiddle * (outputs[j] + delta);
+
+                dft[i] = outputs[j];
+
+                i += 1;
+                j += 3;
+            }
+        }
     }
 
     pub fn iqdft_scalar(&mut self, dft: &[Complex::<F>], sample: &mut T) {
@@ -123,7 +196,9 @@ impl<T, F> QDFT<T, F>
 
         while i < self.size {
             let twiddle = &self.twiddles[j];
+
             result = result + (dft[i] * twiddle).re;
+
             i += 1;
             j += 3;
         }
@@ -133,7 +208,7 @@ impl<T, F> QDFT<T, F>
 
     #[inline]
     pub fn qdft_vector(&mut self, samples: &[T], dfts: &mut [Complex::<F>]) {
-        debug_assert_eq!(dfts.len(), self.size * samples.len());
+        debug_assert_eq!(dfts.len(), samples.len() * self.size);
         for i in 0 .. samples.len() {
             let j = i * self.size .. (i + 1) * self.size;
             self.qdft_scalar(&samples[i], &mut dfts[j]);
@@ -142,7 +217,7 @@ impl<T, F> QDFT<T, F>
 
     #[inline]
     pub fn iqdft_vector(&mut self, dfts: &[Complex::<F>], samples: &mut [T]) {
-        debug_assert_eq!(dfts.len(), self.size * samples.len());
+        debug_assert_eq!(dfts.len(), samples.len() * self.size);
         for i in 0 .. samples.len() {
             let j = i * self.size .. (i + 1) * self.size;
             self.iqdft_scalar(&dfts[j], &mut samples[i]);
