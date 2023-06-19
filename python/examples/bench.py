@@ -6,6 +6,8 @@ from qdft import QDFT
 from timeit import default_timer as timer
 import numpy as np
 
+print("PYTHON;\tQDFT;\tIQDFT")
+
 samplerate = 44100
 bandwidth = (50, samplerate / 2)
 resolution = 24
@@ -17,7 +19,7 @@ qdft = QDFT(samplerate, bandwidth, resolution, latency, window)
 tb0 = timer()
 e0 = int((tb0 - ta0) * 1e+6)
 
-print(f"PREP\tPYTHON\t{e0} us")
+print(f"0;\t{e0};\t{e0}")
 
 n = 1 * samplerate
 
@@ -26,8 +28,6 @@ x = np.ndarray(n, dtype=float)
 runs = 10
 
 for run in range(1, runs + 1):
-
-    print(f"RUN\t{run}/{runs}")
 
     x[:] = 0
 
@@ -41,5 +41,4 @@ for run in range(1, runs + 1):
     tb2 = timer()
     e2 = int((tb2 - ta2) * 1e+6)
 
-    print(f"\tQDFT\t{e1} us")
-    print(f"\tIQDFT\t{e2} us")
+    print(f"{run};\t{e1};\t{e2}")

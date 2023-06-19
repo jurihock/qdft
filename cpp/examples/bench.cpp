@@ -8,6 +8,8 @@
 
 int main()
 {
+  std::cout << "CPP;\tQDFT;\tIQDFT" << std::endl;
+
   const auto samplerate = 44100;
   const auto bandwidth = std::make_pair(50.0, samplerate / 2.0);
   const auto resolution = 24;
@@ -19,7 +21,7 @@ int main()
   const auto tb0 = std::chrono::high_resolution_clock::now();
   const auto e0 = std::chrono::duration_cast<std::chrono::microseconds>(tb0 - ta0).count();
 
-  std::cout << "PREP\t" << "CPP\t" << e0 << " us" << std::endl;
+  std::cout << "0" << ";\t" << e0 << ";\t" << e0 << std::endl;
 
   const auto n = 1 * samplerate;
   const auto m = qdft.size();
@@ -31,8 +33,6 @@ int main()
 
   for (auto run = 1; run <= runs; ++run)
   {
-    std::cout << "RUN\t" << run << "/" << runs << std::endl;
-
     std::fill(x.begin(), x.end(), 0.0);
     std::fill(y.begin(), y.end(), 0.0);
 
@@ -46,8 +46,7 @@ int main()
     const auto tb2 = std::chrono::high_resolution_clock::now();
     const auto e2 = std::chrono::duration_cast<std::chrono::microseconds>(tb2 - ta2).count();
 
-    std::cout << "\tQDFT\t" << e1 << " us" << std::endl;
-    std::cout << "\tIQDFT\t" << e2 << " us" << std::endl;
+    std::cout << run << ";\t" << e1 << ";\t" << e2 << std::endl;
   }
 
   return 0;

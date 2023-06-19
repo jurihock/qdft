@@ -7,6 +7,8 @@ use std::time::Instant;
 type c64 = num::complex::Complex<f64>;
 
 fn main() {
+    println!("RUST;\tQDFT;\tIQDFT");
+
     let samplerate = 44100.0;
     let bandwidth = (50.0, samplerate / 2.0);
     let resolution = 24.0;
@@ -20,9 +22,9 @@ fn main() {
         resolution,
         latency,
         window);
-    let e0 = t0.elapsed();
+    let e0 = t0.elapsed().as_micros();
 
-    println!("PREP\tRUST\t{} us", e0.as_micros());
+    println!("0;\t{e0};\t{e0}");
 
     let n = 1 * samplerate as usize;
     let m = qdft.size();
@@ -33,20 +35,17 @@ fn main() {
     let runs = 10;
 
     for run in 1 .. runs + 1 {
-        println!("RUN\t{}/{}", run, runs);
-
         x.fill(f64::zero());
         y.fill(c64::zero());
 
         let t1 = Instant::now();
         qdft.qdft(&x, &mut y);
-        let e1 = t1.elapsed();
+        let e1 = t1.elapsed().as_micros();
 
         let t2 = Instant::now();
         qdft.iqdft(&y, &mut x);
-        let e2 = t2.elapsed();
+        let e2 = t2.elapsed().as_micros();
 
-        println!("\tQDFT\t{} us", e1.as_micros());
-        println!("\tIQDFT\t{} us", e2.as_micros());
+        println!("{run};\t{e1};\t{e2}");
     }
 }
