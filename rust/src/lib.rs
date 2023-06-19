@@ -4,9 +4,29 @@ use num::{Float, Zero};
 use num::complex::Complex;
 use std::collections::VecDeque;
 
+pub trait CastFrom<T> {
+    fn cast(value: T) -> Self;
+}
+
+macro_rules! impl_cast_from_x_for_y {
+    ($x:ty, $y:ty) => {
+        impl CastFrom<$x> for $y {
+            #[inline]
+            fn cast(value: $x) -> $y {
+                value as $y
+            }
+        }
+    }
+}
+
+impl_cast_from_x_for_y!(f32, f32);
+impl_cast_from_x_for_y!(f32, f64);
+impl_cast_from_x_for_y!(f64, f32);
+impl_cast_from_x_for_y!(f64, f64);
+
 pub struct QDFT<T, F>
-    where T: Float,
-          F: Float {
+    where T: Float + CastFrom<F>,
+          F: Float + CastFrom<T> + CastFrom<f64> {
     samplerate: f64,
     bandwidth: (f64, f64),
     resolution: f64,
@@ -28,8 +48,8 @@ pub type QDFT32 = QDFT<f32, f64>;
 pub type QDFT64 = QDFT<f64, f64>;
 
 impl<T, F> QDFT<T, F>
-    where T: Float,
-          F: Float {
+    where T: Float + CastFrom<F>,
+          F: Float + CastFrom<T> + CastFrom<f64> {
     pub fn new(samplerate: f64,
                bandwidth: (f64, f64),
                resolution: f64,
@@ -55,7 +75,7 @@ impl<T, F> QDFT<T, F>
                      * f64::clamp(latency * 0.5 + 0.5, 0.0, 1.0));
           offsets[i] = offset as usize;
 
-          let weight = F::one() / F::from(period).unwrap();
+          let weight = F::one() / F::cast(period);
           weights[i] = weight;
         }
 
@@ -65,8 +85,9 @@ impl<T, F> QDFT<T, F>
         for k in [-1, 0, 1] {
             let pi = std::f64::consts::PI; // acos(-1)
 
-            let fiddle = Complex::<F>::from_polar(F::one(), F::from(
-                -2.0 * pi * (quality + (k as f64))).unwrap());
+            let fiddle = Complex::<F>::from_polar(
+                F::one(),
+                F::cast(-2.0 * pi * (quality + (k as f64))));
             fiddles[(k + 1) as usize] = fiddle;
 
             let mut i = 0;
@@ -75,8 +96,9 @@ impl<T, F> QDFT<T, F>
             while i < size {
                 let period = periods[i] as f64;
 
-                let twiddle = Complex::<F>::from_polar(F::one(), F::from(
-                    2.0 * pi * (quality + (k as f64)) / period).unwrap());
+                let twiddle = Complex::<F>::from_polar(
+                    F::one(),
+                    F::cast(2.0 * pi * (quality + (k as f64)) / period));
                 twiddles[(j + k) as usize] = twiddle;
 
                 i += 1;
@@ -119,8 +141,8 @@ impl<T, F> QDFT<T, F>
 
         if self.window.is_some() {
             let w = self.window.unwrap();
-            let a = F::from(w.0).unwrap();
-            let b = F::from(w.1 / 2.0).unwrap();
+            let a = F::cast(w.0);
+            let b = F::cast(w.1 / 2.0);
 
             let mut i = 0;
             let mut j = 1;
@@ -133,8 +155,8 @@ impl<T, F> QDFT<T, F>
                 let fiddles = &self.fiddles;
                 let twiddles = &self.twiddles;
 
-                let left = F::from(inputs[offset + period]).unwrap();
-                let right = F::from(inputs[offset]).unwrap();
+                let left = F::cast(inputs[offset + period]);
+                let right = F::cast(inputs[offset]);
 
                 let deltas = (
                     (fiddles[0] * left - right) * weight,
@@ -170,8 +192,8 @@ impl<T, F> QDFT<T, F>
                 let fiddle = self.fiddles[1];
                 let twiddle = self.twiddles[j];
 
-                let left = F::from(inputs[offset + period]).unwrap();
-                let right = F::from(inputs[offset]).unwrap();
+                let left = F::cast(inputs[offset + period]);
+                let right = F::cast(inputs[offset]);
 
                 let delta = (fiddle * left - right) * weight;
 
@@ -202,7 +224,7 @@ impl<T, F> QDFT<T, F>
             j += 3;
         }
 
-        *sample = T::from(result).unwrap();
+        *sample = T::cast(result);
     }
 
     #[inline]
