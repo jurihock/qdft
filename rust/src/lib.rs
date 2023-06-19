@@ -109,7 +109,7 @@ impl<T, F> QDFT<T, F>
     pub fn size(&self) -> usize { self.size }
 
     pub fn qdft_scalar(&mut self, sample: &T, dft: &mut [Complex::<F>]) {
-        debug_assert_eq!(dft.len(), self.size);
+        assert_eq!(dft.len(), self.size);
 
         let inputs = &mut self.inputs;
         let outputs = &mut self.outputs;
@@ -186,7 +186,7 @@ impl<T, F> QDFT<T, F>
     }
 
     pub fn iqdft_scalar(&mut self, dft: &[Complex::<F>], sample: &mut T) {
-        debug_assert_eq!(dft.len(), self.size);
+        assert_eq!(dft.len(), self.size);
 
         let mut result = F::zero();
 
@@ -207,7 +207,7 @@ impl<T, F> QDFT<T, F>
 
     #[inline]
     pub fn qdft_vector(&mut self, samples: &[T], dfts: &mut [Complex::<F>]) {
-        debug_assert_eq!(dfts.len(), samples.len() * self.size);
+        assert_eq!(dfts.len(), samples.len() * self.size);
         for i in 0 .. samples.len() {
             let j = i * self.size .. (i + 1) * self.size;
             self.qdft_scalar(&samples[i], &mut dfts[j]);
@@ -216,7 +216,7 @@ impl<T, F> QDFT<T, F>
 
     #[inline]
     pub fn iqdft_vector(&mut self, dfts: &[Complex::<F>], samples: &mut [T]) {
-        debug_assert_eq!(dfts.len(), samples.len() * self.size);
+        assert_eq!(dfts.len(), samples.len() * self.size);
         for i in 0 .. samples.len() {
             let j = i * self.size .. (i + 1) * self.size;
             self.iqdft_scalar(&dfts[j], &mut samples[i]);
