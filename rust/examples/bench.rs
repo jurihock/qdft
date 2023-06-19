@@ -14,7 +14,7 @@ fn main() {
     let window = Some((0.5, -0.5));
 
     let t0 = Instant::now();
-    let mut qdft = QDFT::new(
+    let mut qdft = QDFT::<f64, f64>::new(
         samplerate,
         bandwidth,
         resolution,
@@ -27,7 +27,7 @@ fn main() {
     let n = 1 * samplerate as usize;
     let m = qdft.size();
 
-    let mut x = vec![f32::zero(); n];
+    let mut x = vec![f64::zero(); n];
     let mut y = vec![c64::zero(); n * m];
 
     let runs = 10;
@@ -35,7 +35,7 @@ fn main() {
     for run in 1 .. runs + 1 {
         println!("RUN\t{}/{}", run, runs);
 
-        x.fill(f32::zero());
+        x.fill(f64::zero());
         y.fill(c64::zero());
 
         let t1 = Instant::now();

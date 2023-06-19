@@ -15,7 +15,7 @@ int main()
   const auto window = std::make_pair(+0.5, -0.5);
 
   const auto ta0 = std::chrono::high_resolution_clock::now();
-  QDFT qdft(samplerate, bandwidth, resolution, latency, window);
+  QDFT<double, double> qdft(samplerate, bandwidth, resolution, latency, window);
   const auto tb0 = std::chrono::high_resolution_clock::now();
   const auto e0 = std::chrono::duration_cast<std::chrono::microseconds>(tb0 - ta0).count();
 
@@ -24,7 +24,7 @@ int main()
   const auto n = 1 * samplerate;
   const auto m = qdft.size();
 
-  std::vector<float> x(n);
+  std::vector<double> x(n);
   std::vector<std::complex<double>> y(n * m);
 
   const auto runs = 10;
@@ -33,8 +33,8 @@ int main()
   {
     std::cout << "RUN\t" << run << "/" << runs << std::endl;
 
-    std::fill(x.begin(), x.end(), 0);
-    std::fill(y.begin(), y.end(), 0);
+    std::fill(x.begin(), x.end(), 0.0);
+    std::fill(y.begin(), y.end(), 0.0);
 
     const auto ta1 = std::chrono::high_resolution_clock::now();
     qdft.qdft(n, x.data(), y.data());
