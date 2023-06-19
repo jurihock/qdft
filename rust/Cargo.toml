@@ -11,7 +11,7 @@ keywords = ["cqt", "constant-q", "sliding", "dft", "discrete", "fourier", "trans
 categories = ["algorithms", "mathematics", "multimedia", "science"]
 
 [dependencies]
-num = "*"
+num = "0.4.*"
 
 [dev-dependencies]
 ndarray = "0.15.*"
