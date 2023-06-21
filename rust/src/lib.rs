@@ -4,10 +4,16 @@ use num::{Float, Zero};
 use num::complex::Complex;
 use std::collections::VecDeque;
 
+/// Cast between primitive types such as `f32` and `f64`.
 pub trait CastFrom<T> {
+    /// Casts the specified source value
+    /// to the destination primitive type
+    /// by using the `as` expression.
     fn cast(value: T) -> Self;
 }
 
+/// Implements the [`CastFrom`] trait for the specified
+/// source `x` and destination `y` types.
 macro_rules! impl_cast_from_x_for_y {
     ($x:ty, $y:ty) => {
         impl CastFrom<$x> for $y {
@@ -19,11 +25,21 @@ macro_rules! impl_cast_from_x_for_y {
     }
 }
 
+// Since only f32 and f64 types are intended,
+// the cast trait must only be implemented
+// for these two types:
 impl_cast_from_x_for_y!(f32, f32);
 impl_cast_from_x_for_y!(f32, f64);
 impl_cast_from_x_for_y!(f64, f32);
 impl_cast_from_x_for_y!(f64, f64);
 
+/// Constant-Q Sliding Discrete Fourier Transform (QDFT).
+///
+/// # Arguments
+/// - `T` - Time domain data type.
+/// - `F` - Frequency domain data type.
+///
+/// Both `T` and `F` must be `f32` or `f64` respectively.
 pub struct QDFT<T, F>
     where T: Float + CastFrom<F>,
           F: Float + CastFrom<T> + CastFrom<f64> {
@@ -50,6 +66,15 @@ pub type QDFT64 = QDFT<f64, f64>;
 impl<T, F> QDFT<T, F>
     where T: Float + CastFrom<F>,
           F: Float + CastFrom<T> + CastFrom<f64> {
+
+    /// Returns a new QDFT plan instance for the specified parameters.
+    ///
+    /// # Arguments
+    /// - `samplerate` - Sample rate in hertz.
+    /// - `bandwidth`  - Lowest and highest frequency in hertz to be resolved.
+    /// - `resolution` - Octave resolution, e.g. number of DFT bins per octave.
+    /// - `latency`    - Analysis latency adjustment between -1 and +1.
+    /// - `window`     - Cosine family window coeffs, e.g. (+0.5,-0.5) in case of hann window.
     pub fn new(samplerate: f64,
                bandwidth: (f64, f64),
                resolution: f64,
