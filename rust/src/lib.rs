@@ -155,6 +155,7 @@ impl<T, F> QDFT<T, F>
 
     pub fn size(&self) -> usize { self.size }
 
+    /// Estimate the DFT vector for the given sample.
     pub fn qdft_scalar(&mut self, sample: &T, dft: &mut [Complex::<F>]) {
         assert_eq!(dft.len(), self.size);
 
@@ -232,6 +233,7 @@ impl<T, F> QDFT<T, F>
         }
     }
 
+    /// Synthesize the sample from the given DFT vector.
     pub fn iqdft_scalar(&mut self, dft: &[Complex::<F>], sample: &mut T) {
         assert_eq!(dft.len(), self.size);
 
@@ -252,6 +254,7 @@ impl<T, F> QDFT<T, F>
         *sample = T::cast(result);
     }
 
+    /// Estimate the DFT matrix for the given sample array.
     #[inline]
     pub fn qdft_vector(&mut self, samples: &[T], dfts: &mut [Complex::<F>]) {
         assert_eq!(dfts.len(), samples.len() * self.size);
@@ -261,6 +264,7 @@ impl<T, F> QDFT<T, F>
         }
     }
 
+    /// Synthesize the sample array from the given DFT matrix.
     #[inline]
     pub fn iqdft_vector(&mut self, dfts: &[Complex::<F>], samples: &mut [T]) {
         assert_eq!(dfts.len(), samples.len() * self.size);
@@ -270,11 +274,15 @@ impl<T, F> QDFT<T, F>
         }
     }
 
+    /// Estimate the DFT matrix for the given sample array.
+    /// This is a shortcut for the function [`qdft_vector`].
     #[inline]
     pub fn qdft(&mut self, samples: &[T], dfts: &mut [Complex::<F>]) {
         self.qdft_vector(samples, dfts);
     }
 
+    /// Synthesize the sample array from the given DFT matrix.
+    /// This is a shortcut for the function [`iqdft_vector`].
     #[inline]
     pub fn iqdft(&mut self, dfts: &[Complex::<F>], samples: &mut [T]) {
         self.iqdft_vector(dfts, samples);
