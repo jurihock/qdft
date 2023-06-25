@@ -1,10 +1,10 @@
-# Constant-Q Sliding DFT in C++ and Python (QDFT)
+# Constant-Q Sliding DFT in C++, Rust, and Python
 
 ![language](https://img.shields.io/badge/languages-C%2B%2B%20Python-blue)
 ![license](https://img.shields.io/github/license/jurihock/sdft?color=green)
 ![pypi](https://img.shields.io/pypi/v/qdft?color=gold)
 
-Forward and inverse Constant-Q Sliding DFT according to [[1]](#1) with following features:
+Forward and inverse Constant-Q Sliding DFT (QDFT) according to [[1]](#1) with following features:
 
 - Arbitrary octave resolution ([quarter tone](https://en.wikipedia.org/wiki/Quarter_tone) by default)
 - Built-in parameterizable cosine family window (Hann by default)
@@ -20,6 +20,7 @@ The Constant-Q Sliding Discrete Fourier Transform (QDFT) is a recursive approach
 - [x] Readme
 - [ ] Docstrings
 - [x] PyPI package [qdft](https://pypi.org/project/qdft)
+- [ ] Rust package
 - [ ] Sliding [chromagram](https://en.wikipedia.org/wiki/Chroma_feature) as a bonus (a draft is already included in the Python package)
 
 ## Basic usage
@@ -27,7 +28,7 @@ The Constant-Q Sliding Discrete Fourier Transform (QDFT) is a recursive approach
 ### C++
 
 ```c++
-#include <qdft/qdft.h> // see also src/cpp folder
+#include <qdft/qdft.h> // see also cpp folder
 
 double sr = 44100;                             // sample rate in hertz
 std::pair<double, double> bw = { 50, sr / 2 }; // lowest and highest frequency in hertz to be resolved
@@ -49,10 +50,50 @@ qdft.iqdft(n, dft, y); // synthesize output samples from dft matrix
 
 The time domain data type defaults to `float` and the frequency domain data type to `double`.
 
+### Rust
+
+```rust
+use qdft::QDFT; // see also rust folder
+
+// just a shortcut for our complex number type
+#[allow(non_camel_case_types)]
+type c64 = num::complex::Complex<f64>;
+
+// zero number trait, e.g. c64::zero()
+use num::Zero;
+
+let samplerate = 44100.0;                 // sample rate in hertz
+let bandwidth = (50.0, samplerate / 2.0); // lowest and highest frequency in hertz to be resolved
+let resolution = 24.0;                    // octave resolution, e.g. number of DFT bins per octave
+let latency = 0.0;                        // analysis latency adjustment between -1 and +1
+let window = Some((0.5, -0.5));           // hann window coeffs
+
+// create qdft plan for custom time and frequency domain data types
+let mut qdft = QDFT::<f32, f64>::new(
+    samplerate,
+    bandwidth,
+    resolution,
+    latency,
+    window);
+
+let n = ...;         // number of samples
+let m = qdft.size(); // number of dft bins
+
+let mut x = vec![f32::zero(); n]; // analysis samples of shape (n)
+let mut y = vec![f32::zero(); n]; // synthesis samples of shape (n)
+
+let mut dft = vec![c64::zero(); n * m]; // dft matrix of shape (n, m)
+
+qdft.qdft(&x, &mut dft);  // extract dft matrix from input samples
+qdft.iqdft(&dft, &mut y); // synthesize output samples from dft matrix
+```
+
+Alternatively use [ndarray](https://github.com/rust-ndarray/ndarray) instead of a flat array to allocate the DFT matrix, as shown in the `analysis.rs` example.
+
 ### Python
 
 ```python
-from qdft import QDFT # see also src/python folder
+from qdft import QDFT # see also python folder
 
 sr = 44100        # sample rate in hertz
 bw = (50, sr / 2) # lowest and highest frequency in hertz to be resolved
