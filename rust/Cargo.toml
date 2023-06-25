@@ -8,7 +8,7 @@ description = "Constant-Q Sliding DFT"
 readme = "README.md"
 license = "MIT"
 license-file = "LICENSE"
-keywords = ["cqt", "constant-q", "sliding", "dft", "discrete", "fourier", "transform", "audio", "signal-processing", "dsp", "spectrum", "frequencies", "hz"]
+keywords = ["cqt", "dft", "audio", "signal-processing", "spectrum"]
 categories = ["algorithms", "mathematics", "multimedia", "science"]
 
 [dependencies]
