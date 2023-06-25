@@ -1,6 +1,4 @@
-#![allow(unused)]
-
-use num::{Float, Zero};
+use num::{Float,Zero};
 use num::complex::Complex;
 use std::collections::VecDeque;
 
@@ -153,7 +151,29 @@ impl<T, F> QDFT<T, F>
         }
     }
 
+    /// Returns the number of DFT bins derived from the `bandwidth` and `resolution`.
     pub fn size(&self) -> usize { self.size }
+
+    /// Returns the sample rate in hertz.
+    pub fn samplerate(&self) -> f64 { self.samplerate }
+
+    /// Returns the lowest and highest frequency in hertz to be resolved.
+    pub fn bandwidth(&self) -> (f64, f64) { self.bandwidth }
+
+    /// Returns the octave resolution, e.g. number of DFT bins per octave.
+    pub fn resolution(&self) -> f64 { self.resolution }
+
+    /// Returns the quality factor derived from the `resolution`.
+    pub fn quality(&self) -> f64 { self.quality }
+
+    /// Returns the analysis latency factor.
+    pub fn latency(&self) -> f64 { self.latency }
+
+    /// Returns frequency values in hertz of the individual DFT bins.
+    pub fn frequencies(&self) -> &[f64] { self.frequencies.as_slice() }
+
+    /// Returns the cosine family window coeffs, e.g. (+0.5,-0.5) in case of hann window.
+    pub fn window(&self) -> Option<(f64, f64)> { self.window }
 
     /// Estimate the DFT vector for the given sample.
     pub fn qdft_scalar(&mut self, sample: &T, dft: &mut [Complex::<F>]) {
