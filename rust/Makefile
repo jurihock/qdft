@@ -1,4 +1,4 @@
-.PHONY: help build clean test bench analysis
+.PHONY: help build clean test bench analysis upload upload-check
 
 help:
 	@echo build
@@ -6,6 +6,8 @@ help:
 	@echo test
 	@echo bench
 	@echo analysis
+	@echo upload
+	@echo upload-check
 
 build:
 	@cargo build --workspace
@@ -25,3 +27,13 @@ analysis:
 	@cargo build --example analysis
 	@cargo run --example analysis
 	@python examples/analysis.py
+
+upload:
+	@cp -f ../LICENSE ../README.md .
+	@cargo publish --allow-dirty
+	@rm -rf LICENSE README.md
+
+upload-check:
+	@cp -f ../LICENSE ../README.md .
+	@cargo publish --allow-dirty --dry-run
+	@rm -rf LICENSE README.md
