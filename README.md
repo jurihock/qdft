@@ -1,8 +1,9 @@
 # Constant-Q Sliding DFT in C++, Rust, and Python
 
-![language](https://img.shields.io/badge/languages-C%2B%2B%20Python-blue)
+![language](https://img.shields.io/badge/languages-C%2B%2B%20Rust%20Python-blue)
 ![license](https://img.shields.io/github/license/jurihock/sdft?color=green)
 ![pypi](https://img.shields.io/pypi/v/qdft?color=gold)
+![creates](https://img.shields.io/crates/v/qdft?color=gold)
 
 Forward and inverse Constant-Q Sliding DFT (QDFT) according to [[1]](#1) with following features:
 
