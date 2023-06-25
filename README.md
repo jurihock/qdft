@@ -20,7 +20,7 @@ The Constant-Q Sliding Discrete Fourier Transform (QDFT) is a recursive approach
 - [x] Readme
 - [ ] Docstrings
 - [x] PyPI package [qdft](https://pypi.org/project/qdft)
-- [ ] Rust package
+- [x] Rust package [qdft](https://crates.io/crates/qdft)
 - [ ] Sliding [chromagram](https://en.wikipedia.org/wiki/Chroma_feature) as a bonus (a draft is already included in the Python package)
 
 ## Basic usage
