@@ -1,17 +1,21 @@
-project(qdft-example-analysis)
+if(Python3_FOUND AND Python3_NumPy_FOUND)
 
-add_executable(${PROJECT_NAME})
+  project(qdft-example-analysis)
 
-target_sources(${PROJECT_NAME}
-  PRIVATE "${CMAKE_CURRENT_LIST_DIR}/analysis.cpp")
+  add_executable(${PROJECT_NAME})
 
-target_link_libraries(${PROJECT_NAME}
-  PRIVATE qdft::cpp matplotlibcpp numcpp pybind python)
+  target_sources(${PROJECT_NAME}
+    PRIVATE "${CMAKE_CURRENT_LIST_DIR}/analysis.cpp")
 
-if (MSVC)
-  target_compile_options(${PROJECT_NAME}
-    PRIVATE /fp:fast)
-else()
-  target_compile_options(${PROJECT_NAME}
-    PRIVATE -ffast-math)
+  target_link_libraries(${PROJECT_NAME}
+    PRIVATE qdft::cpp matplotlibcpp numcpp pybind python)
+
+  if (MSVC)
+    target_compile_options(${PROJECT_NAME}
+      PRIVATE /fp:fast)
+  else()
+    target_compile_options(${PROJECT_NAME}
+      PRIVATE -ffast-math)
+  endif()
+
 endif()

@@ -19,6 +19,6 @@ if(Python3_FOUND AND Python3_NumPy_FOUND)
   include("${CMAKE_CURRENT_LIST_DIR}/lib/numcpp.cmake")
   include("${CMAKE_CURRENT_LIST_DIR}/lib/pybind.cmake")
 
-  include("${CMAKE_CURRENT_LIST_DIR}/examples/CMakeLists.txt")
-
 endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/examples/CMakeLists.txt")
