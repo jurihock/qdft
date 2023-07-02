@@ -147,6 +147,10 @@ public:
 
     if (config.window)
     {
+      const std::pair<double, double> w = config.window.value();
+      const F a = w.first;
+      const F b = w.second / 2;
+
       for (size_t i = 0, j = 1; i < config.size; ++i, j+=3)
       {
         const size_t period = data.periods[i];
@@ -155,9 +159,6 @@ public:
 
         const std::complex<F>* fiddles = data.fiddles.data() + 1;
         const std::complex<F>* twiddles = data.twiddles.data() + j;
-
-        const F a = config.window.value().first;
-        const F b = config.window.value().second / 2;
 
         const F left = inputs[offset + period];
         const F right = inputs[offset];
@@ -172,7 +173,7 @@ public:
         outputs[ 0] = twiddles[ 0] * (outputs[ 0] + delta2);
         outputs[+1] = twiddles[+1] * (outputs[+1] + delta3);
 
-        dft[i] = a * outputs[0] + b * (outputs[-1] + outputs[+1]);
+        dft[i] = outputs[0] * a + (outputs[-1] + outputs[+1]) * b;
       }
     }
     else
