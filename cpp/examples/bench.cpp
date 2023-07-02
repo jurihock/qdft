@@ -6,6 +6,8 @@
 #include <iostream>
 #include <vector>
 
+using qdft::QDFT;
+
 int main()
 {
   std::cout << "CPP;\tQDFT;\tIQDFT" << std::endl;
