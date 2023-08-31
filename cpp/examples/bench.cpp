@@ -15,11 +15,12 @@ int main()
   const auto samplerate = 44100;
   const auto bandwidth = std::make_pair(50.0, samplerate / 2.0);
   const auto resolution = 24;
+  const auto gamma = 0;
   const auto latency = 0;
   const auto window = std::make_pair(+0.5, -0.5);
 
   const auto ta0 = std::chrono::high_resolution_clock::now();
-  QDFT<double, double> qdft(samplerate, bandwidth, resolution, latency, window);
+  QDFT<double, double> qdft(samplerate, bandwidth, resolution, gamma, latency, window);
   const auto tb0 = std::chrono::high_resolution_clock::now();
   const auto e0 = std::chrono::duration_cast<std::chrono::microseconds>(tb0 - ta0).count();
 

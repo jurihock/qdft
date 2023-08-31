@@ -3,7 +3,7 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Constant-Q Sliding DFT implementation according to [1] and [2].
+ * Constant-Q Sliding DFT implementation according to [1], [2], and [3].
  *
  * [1] Russell Bradford and Richard Dobson and John ffitch
  *     Sliding with a Constant Q
@@ -13,6 +13,11 @@
  * [2] Benjamin Blankertz
  *     The Constant Q Transform
  *     https://doc.ml.tu-berlin.de/bbci/material/publications/Bla_constQ.pdf
+ *
+ * [3] Christian Schörkhuber and Anssi Klapuri and Nicki Holighaus and Monika Dörfler
+ *     A Matlab Toolbox for Efficient Perfect Reconstruction
+ *     Time-Frequency Transforms with Log-Frequency Resolution
+ *     http://www.aes.org/e-lib/browse.cfm?elib=17112
  *
  * Source: https://github.com/jurihock/qdft
  **/
@@ -41,6 +46,7 @@ namespace qdft
     QDFT(const double samplerate,
          const std::pair<double, double> bandwidth,
          const double resolution = 24,
+         const double gamma = 0,
          const double latency = 0,
          const std::optional<std::pair<double, double>> window = std::make_pair(+0.5,-0.5))
     {
@@ -49,15 +55,20 @@ namespace qdft
       config.samplerate = samplerate;
       config.bandwidth = bandwidth;
       config.resolution = resolution;
+      config.gamma = gamma;
       config.latency = latency;
       config.window = window;
       config.quality = std::pow(std::pow(2.0, 1.0 / resolution) - 1.0, -1.0);
       config.size = static_cast<size_t>(std::ceil(resolution * std::log2(bandwidth.second / bandwidth.first)));
 
       data.frequencies.resize(config.size);
+      data.qualities.resize(config.size);
       data.periods.resize(config.size);
       data.offsets.resize(config.size);
       data.weights.resize(config.size);
+
+      const double alpha = std::pow(2.0, 1.0 / resolution) - 1.0;
+      const double beta = (gamma < 0) ? (alpha * 24.7 / 0.108) : gamma;
 
       for (size_t i = 0; i < config.size; ++i)
       {
@@ -65,7 +76,11 @@ namespace qdft
 
         data.frequencies[i] = frequency;
 
-        const double period = std::ceil(config.quality * config.samplerate / frequency);
+        const double quality = frequency / (alpha * frequency + beta);
+
+        data.qualities[i] = quality;
+
+        const double period = std::ceil(quality * config.samplerate / frequency);
 
         data.periods[i] = static_cast<size_t>(period);
 
@@ -79,18 +94,18 @@ namespace qdft
         data.weights[i] = weight;
       }
 
-      data.fiddles.resize(3);
+      data.fiddles.resize(config.size * 3);
       data.twiddles.resize(config.size * 3);
 
       for (const int k : { -1, 0, +1 })
       {
-        const std::complex<F> fiddle = std::polar(F(1), F(-2) * pi * (config.quality + k));
-
-        data.fiddles[k + 1] = fiddle;
-
         for (size_t i = 0, j = 1; i < config.size; ++i, j+=3)
         {
-          const std::complex<F> twiddle = std::polar(F(1), F(+2) * pi * (config.quality + k) / data.periods[i]);
+          const std::complex<F> fiddle = std::polar(F(1), F(-2) * pi * (data.qualities[i] + k));
+
+          data.fiddles[j + k] = fiddle;
+
+          const std::complex<F> twiddle = std::polar(F(1), F(+2) * pi * (data.qualities[i] + k) / data.periods[i]);
 
           data.twiddles[j + k] = twiddle;
         }
@@ -159,7 +174,7 @@ namespace qdft
           const size_t offset = data.offsets[i];
           const F weight = data.weights[i];
 
-          const std::complex<F>* fiddles = data.fiddles.data() + 1;
+          const std::complex<F>* fiddles = data.fiddles.data() + j;
           const std::complex<F>* twiddles = data.twiddles.data() + j;
 
           const F left = inputs[offset + period];
@@ -186,7 +201,7 @@ namespace qdft
           const size_t offset = data.offsets[i];
           const F weight = data.weights[i];
 
-          const std::complex<F>& fiddle = data.fiddles[1];
+          const std::complex<F>& fiddle = data.fiddles[j];
           const std::complex<F>& twiddle = data.twiddles[j];
 
           const F left = inputs[offset + period];
@@ -240,6 +255,7 @@ namespace qdft
       double samplerate;
       std::pair<double, double> bandwidth;
       double resolution;
+      double gamma;
       double latency;
       double quality;
       size_t size;
@@ -251,6 +267,7 @@ namespace qdft
     struct qdft_data_t
     {
       std::vector<double> frequencies;
+      std::vector<double> qualities;
       std::vector<size_t> periods;
       std::vector<size_t> offsets;
       std::vector<F> weights;

@@ -58,9 +58,8 @@ class QDFT:
         frequencies = bandwidth[0] * numpy.power(2, numpy.arange(size) / resolution)
 
         alpha = 2 ** (1 / resolution) - 1
-        beta = alpha * (24.7 / 0.108)
-        gamma = beta if (gamma is None) or (gamma < 0) else gamma
-        quality = frequencies / (alpha * frequencies + gamma)
+        beta = (alpha * 24.7 / 0.108) if (gamma is None) or (gamma < 0) else gamma
+        quality = frequencies / (alpha * frequencies + beta)
 
         periods = numpy.ceil(quality * samplerate / frequencies).astype(int)
         offsets = numpy.ceil((periods[0] - periods) * numpy.clip(latency * 0.5 + 0.5, 0, 1)).astype(int)
@@ -83,6 +82,7 @@ class QDFT:
         self.samplerate = samplerate
         self.bandwidth = bandwidth
         self.resolution = resolution
+        self.gamma = gamma
         self.latency = latency
         self.window = window
         self.kernels = kernels
