@@ -31,7 +31,7 @@ class Chroma:
         notes = numpy.array([scale.note(semitone) for semitone in semitones])
         octaves = numpy.array([scale.octave(frequency) for frequency in frequencies])
 
-        qdft = QDFT(samplerate, (fmin, fmax), 24, latency)
+        qdft = QDFT(samplerate=samplerate, bandwidth=(fmin, fmax), resolution=24, latency=latency)
         assert numpy.allclose(qdft.frequencies[::2], frequencies)
 
         size = qdft.size // 2

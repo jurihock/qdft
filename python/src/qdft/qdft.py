@@ -3,7 +3,7 @@ Copyright (c) 2023 Juergen Hock
 
 SPDX-License-Identifier: MIT
 
-Constant-Q Sliding DFT implementation according to [1] and [2].
+Constant-Q Sliding DFT implementation according to [1], [2], and [3].
 
 [1] Russell Bradford and Richard Dobson and John ffitch
     Sliding with a Constant Q
@@ -13,6 +13,11 @@ Constant-Q Sliding DFT implementation according to [1] and [2].
 [2] Benjamin Blankertz
     The Constant Q Transform
     https://doc.ml.tu-berlin.de/bbci/material/publications/Bla_constQ.pdf
+
+[3] Christian Schörkhuber and Anssi Klapuri and Nicki Holighaus and Monika Dörfler
+    A Matlab Toolbox for Efficient Perfect Reconstruction
+    Time-Frequency Transforms with Log-Frequency Resolution
+    http://www.aes.org/e-lib/browse.cfm?elib=17112
 
 Source: https://github.com/jurihock/qdft
 """
@@ -27,7 +32,7 @@ class QDFT:
     Constant-Q Sliding Discrete Fourier Transform (QDFT).
     """
 
-    def __init__(self, samplerate, bandwidth, resolution=24, latency=0, window=(+0.5,-0.5)):
+    def __init__(self, samplerate, bandwidth, resolution=24, gamma=0, latency=0, window=(+0.5,-0.5)):
         """
         Create a new QDFT plan.
 
@@ -39,6 +44,8 @@ class QDFT:
             Lowest and highest frequency in hertz to be resolved.
         resolution : int, optional
             Octave resolution, e.g. number of DFT bins per octave.
+        gamma : float, optional
+            Bandwidth offset for determining filter lengths.
         latency : float, optional
             Analysis latency adjustment between -1 and +1.
         window : tuple(float, float), optional
@@ -47,15 +54,19 @@ class QDFT:
 
         kernels = numpy.array([0, +1, -1] if window is not None else [0])
 
-        quality = (2 ** (1 / resolution) - 1) ** -1
         size = numpy.ceil(resolution * numpy.log2(bandwidth[1] / bandwidth[0])).astype(int)
         frequencies = bandwidth[0] * numpy.power(2, numpy.arange(size) / resolution)
+
+        alpha = 2 ** (1 / resolution) - 1
+        beta = alpha * (24.7 / 0.108)
+        gamma = beta if (gamma is None) or (gamma < 0) else gamma
+        quality = frequencies / (alpha * frequencies + gamma)
 
         periods = numpy.ceil(quality * samplerate / frequencies).astype(int)
         offsets = numpy.ceil((periods[0] - periods) * numpy.clip(latency * 0.5 + 0.5, 0, 1)).astype(int)
         weights = 1 / periods
 
-        fiddles = numpy.exp(-2j * numpy.pi * (quality + kernels))
+        fiddles = numpy.exp(-2j * numpy.pi * (quality + kernels[:, None]))
         twiddles = numpy.exp(+2j * numpy.pi * (quality + kernels[:, None]) / periods)
 
         inputs = numpy.zeros(periods[0], dtype=float)
@@ -165,9 +176,9 @@ class QDFT:
                     left = inputs[offsets[j] + periods[j] + i]
                     right = inputs[offsets[j] + i]
 
-                    delta1 = (fiddles[-1] * left - right) * weights[j]
-                    delta2 = (fiddles[ 0] * left - right) * weights[j]
-                    delta3 = (fiddles[+1] * left - right) * weights[j]
+                    delta1 = (fiddles[-1, j] * left - right) * weights[j]
+                    delta2 = (fiddles[ 0, j] * left - right) * weights[j]
+                    delta3 = (fiddles[+1, j] * left - right) * weights[j]
 
                     dfts[i, j, -1] = twiddles[-1, j] * (dfts[i - 1, j, -1] + delta1)
                     dfts[i, j,  0] = twiddles[ 0, j] * (dfts[i - 1, j,  0] + delta2)
@@ -182,7 +193,7 @@ class QDFT:
                     left = inputs[offsets[j] + periods[j] + i]
                     right = inputs[offsets[j] + i]
 
-                    delta = (fiddles[0] * left - right) * weights[j]
+                    delta = (fiddles[0, j] * left - right) * weights[j]
 
                     dfts[i, j, 0] = twiddles[0, j] * (dfts[i - 1, j, 0] + delta)
 
