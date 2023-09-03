@@ -25,6 +25,7 @@ fn main() {
     let samplerate = 44100.0;
     let bandwidth = (50.0, samplerate / 2.0);
     let resolution = 24.0;
+    let quality = 0.0;
     let latency = 0.0;
     let window = Some((0.5, -0.5));
 
@@ -32,6 +33,7 @@ fn main() {
         samplerate,
         bandwidth,
         resolution,
+        quality,
         latency,
         window);
 

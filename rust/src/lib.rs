@@ -44,11 +44,13 @@ pub struct QDFT<T, F>
     samplerate: f64,
     bandwidth: (f64, f64),
     resolution: f64,
-    latency: f64,
     quality: f64,
-    size: usize,
+    latency: f64,
     window: Option<(f64, f64)>,
+    size: usize,
     frequencies: Vec<f64>,
+    qualities: Vec<f64>,
+    latencies: Vec<f64>,
     periods: Vec<usize>,
     offsets: Vec<usize>,
     weights: Vec<F>,
@@ -71,18 +73,24 @@ impl<T, F> QDFT<T, F>
     /// - `samplerate` - Sample rate in hertz.
     /// - `bandwidth`  - Lowest and highest frequency in hertz to be resolved.
     /// - `resolution` - Octave resolution, e.g. number of DFT bins per octave.
+    /// - `quality`    - Bandwidth offset for determining filter lengths.
     /// - `latency`    - Analysis latency adjustment between -1 and +1.
     /// - `window`     - Cosine family window coeffs, e.g. (+0.5,-0.5) in case of hann window.
     pub fn new(samplerate: f64,
                bandwidth: (f64, f64),
                resolution: f64,
+               quality: f64,
                latency: f64,
                window: Option<(f64, f64)>,
     ) -> Self {
-        let quality = f64::powf(f64::powf(2.0, 1.0 / resolution) - 1.0, -1.0);
         let size = f64::ceil(resolution * f64::log2(bandwidth.1 / bandwidth.0)) as usize;
 
+        let alpha = f64::powf(2.0, 1.0 / resolution) - 1.0;
+        let beta = if quality < 0.0 { alpha * 24.7 / 0.108 } else { quality };
+
         let mut frequencies = vec![f64::zero(); size];
+        let mut qualities = vec![f64::zero(); size];
+        let mut latencies = vec![f64::zero(); size];
         let mut periods = vec![usize::zero(); size];
         let mut offsets = vec![usize::zero(); size];
         let mut weights = vec![F::zero(); size];
@@ -91,6 +99,9 @@ impl<T, F> QDFT<T, F>
           let frequency = bandwidth.0 * f64::powf(2.0, (i as f64) / resolution);
           frequencies[i] = frequency;
 
+          let quality = frequency / (alpha * frequency + beta);
+          qualities[i] = quality;
+
           let period = f64::ceil(quality * samplerate / frequency);
           periods[i] = period as usize;
 
@@ -98,26 +109,30 @@ impl<T, F> QDFT<T, F>
                      * f64::clamp(latency * 0.5 + 0.5, 0.0, 1.0));
           offsets[i] = offset as usize;
 
+          let latency = (periods[0] as f64 - offset) / samplerate;
+          latencies[i] = latency;
+
           let weight = F::one() / F::cast(period);
           weights[i] = weight;
         }
 
-        let mut fiddles = vec![Complex::<F>::zero(); 3];
+        let mut fiddles = vec![Complex::<F>::zero(); size * 3];
         let mut twiddles = vec![Complex::<F>::zero(); size * 3];
 
         for k in [-1, 0, 1] {
             let pi = std::f64::consts::PI; // acos(-1)
 
-            let fiddle = Complex::<F>::from_polar(
-                F::one(),
-                F::cast(-2.0 * pi * (quality + (k as f64))));
-            fiddles[(k + 1) as usize] = fiddle;
-
             let mut i = 0;
             let mut j = 1;
 
             while i < size {
+                let quality = qualities[i];
                 let period = periods[i] as f64;
+
+                let fiddle = Complex::<F>::from_polar(
+                    F::one(),
+                    F::cast(-2.0 * pi * (quality + (k as f64))));
+                fiddles[(j + k) as usize] = fiddle;
 
                 let twiddle = Complex::<F>::from_polar(
                     F::one(),
@@ -136,11 +151,13 @@ impl<T, F> QDFT<T, F>
             samplerate,
             bandwidth,
             resolution,
-            latency,
             quality,
-            size,
+            latency,
             window,
+            size,
             frequencies,
+            qualities,
+            latencies,
             periods,
             offsets,
             weights,
@@ -163,7 +180,7 @@ impl<T, F> QDFT<T, F>
     /// Returns the octave resolution, e.g. number of DFT bins per octave.
     pub fn resolution(&self) -> f64 { self.resolution }
 
-    /// Returns the quality factor derived from the `resolution`.
+    /// Returns the bandwidth offset for determining filter lengths.
     pub fn quality(&self) -> f64 { self.quality }
 
     /// Returns the analysis latency factor.
@@ -171,6 +188,12 @@ impl<T, F> QDFT<T, F>
 
     /// Returns frequency values in hertz of the individual DFT bins.
     pub fn frequencies(&self) -> &[f64] { self.frequencies.as_slice() }
+
+    /// Returns quality factors of the individual DFT bins.
+    pub fn qualities(&self) -> &[f64] { self.qualities.as_slice() }
+
+    /// Returns latency values in seconds of the individual DFT bins.
+    pub fn latencies(&self) -> &[f64] { self.latencies.as_slice() }
 
     /// Returns the cosine family window coeffs, e.g. (+0.5,-0.5) in case of hann window.
     pub fn window(&self) -> Option<(f64, f64)> { self.window }
@@ -204,16 +227,16 @@ impl<T, F> QDFT<T, F>
                 let left = F::cast(inputs[offset + period]);
                 let right = F::cast(inputs[offset]);
 
-                let deltas = (
-                    (fiddles[0] * left - right) * weight,
-                    (fiddles[1] * left - right) * weight,
-                    (fiddles[2] * left - right) * weight,
-                );
-
                 let k = (
                     (-1 + j) as usize,
                     ( 0 + j) as usize,
                     ( 1 + j) as usize,
+                );
+
+                let deltas = (
+                    (fiddles[k.0] * left - right) * weight,
+                    (fiddles[k.1] * left - right) * weight,
+                    (fiddles[k.2] * left - right) * weight,
                 );
 
                 outputs[k.0] = twiddles[k.0] * (outputs[k.0] + deltas.0);
@@ -235,7 +258,7 @@ impl<T, F> QDFT<T, F>
                 let offset = self.offsets[i];
                 let weight = self.weights[i];
 
-                let fiddle = self.fiddles[1];
+                let fiddle = self.fiddles[j];
                 let twiddle = self.twiddles[j];
 
                 let left = F::cast(inputs[offset + period]);
@@ -318,6 +341,7 @@ mod tests {
         let samplerate = 44100.0;
         let bandwidth = (50.0, samplerate / 2.0);
         let resolution = 24.0;
+        let quality = 0.0;
         let latency = 0.0;
         let window = Some((0.5, -0.5));
 
@@ -325,6 +349,7 @@ mod tests {
             samplerate,
             bandwidth,
             resolution,
+            quality,
             latency,
             window);
 
