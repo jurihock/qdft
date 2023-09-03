@@ -189,7 +189,7 @@ impl<T, F> QDFT<T, F>
     /// Returns frequency values in hertz of the individual DFT bins.
     pub fn frequencies(&self) -> &[f64] { self.frequencies.as_slice() }
 
-    /// Returns quality factors of the individual DFT bins.
+    /// Returns Q-factors (relative frequency resolution) of the individual DFT bins.
     pub fn qualities(&self) -> &[f64] { self.qualities.as_slice() }
 
     /// Returns latency values in seconds of the individual DFT bins.

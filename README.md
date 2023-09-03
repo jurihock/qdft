@@ -11,6 +11,7 @@ Forward and inverse Constant-Q Sliding DFT (QDFT) according to [[1]](#1) with fo
 - Built-in parameterizable cosine family window (Hann by default)
 - Customizable time and frequency domain data type in C++
 - Endless single or multiple sample processing at once
+- Optional quality control parameter to smoothly reduce low frequency bandwidth and improve the time resolution
 - Optional analysis latency control parameter
 - Real-time analysis and synthesis capability
 
