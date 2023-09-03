@@ -144,6 +144,36 @@ namespace qdft
       return config.size;
     }
 
+    double samplerate() const
+    {
+      return config.samplerate;
+    }
+
+    const std::pair<double, double>& bandwidth() const
+    {
+      return config.bandwidth;
+    }
+
+    double resolution() const
+    {
+      return config.resolution;
+    }
+
+    double quality() const
+    {
+      return config.quality;
+    }
+
+    double latency() const
+    {
+      return config.latency;
+    }
+
+    const std::optional<std::pair<double, double>>& window const
+    {
+      return config.window;
+    }
+
     const std::vector<double>& frequencies() const
     {
       return data.frequencies;
@@ -261,8 +291,8 @@ namespace qdft
       double resolution;
       double quality;
       double latency;
-      size_t size;
       std::optional<std::pair<double, double>> window;
+      size_t size;
     };
 
     qdft_config_t config;
