@@ -7,7 +7,6 @@ repository = "https://github.com/jurihock/qdft"
 description = "Constant-Q Sliding DFT"
 readme = "README.md"
 license = "MIT"
-license-file = "LICENSE"
 keywords = ["cqt", "dft", "audio", "signal-processing", "spectrum"]
 categories = ["algorithms", "mathematics", "multimedia", "science"]
 
