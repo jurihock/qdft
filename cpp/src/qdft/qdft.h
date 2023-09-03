@@ -46,7 +46,7 @@ namespace qdft
     QDFT(const double samplerate,
          const std::pair<double, double> bandwidth,
          const double resolution = 24,
-         const double gamma = 0,
+         const double quality = 0,
          const double latency = 0,
          const std::optional<std::pair<double, double>> window = std::make_pair(+0.5,-0.5))
     {
@@ -55,21 +55,20 @@ namespace qdft
       config.samplerate = samplerate;
       config.bandwidth = bandwidth;
       config.resolution = resolution;
-      config.gamma = gamma;
+      config.quality = quality;
       config.latency = latency;
       config.window = window;
-      config.quality = std::pow(std::pow(2.0, 1.0 / resolution) - 1.0, -1.0);
       config.size = static_cast<size_t>(std::ceil(resolution * std::log2(bandwidth.second / bandwidth.first)));
 
       data.frequencies.resize(config.size);
       data.qualities.resize(config.size);
+      data.latencies.resize(config.size);
       data.periods.resize(config.size);
       data.offsets.resize(config.size);
       data.weights.resize(config.size);
-      data.latencies.resize(config.size);
 
       const double alpha = std::pow(2.0, 1.0 / config.resolution) - 1.0;
-      const double beta = (gamma < 0) ? (alpha * 24.7 / 0.108) : gamma;
+      const double beta = (config.quality < 0) ? (alpha * 24.7 / 0.108) : config.quality;
 
       for (size_t i = 0; i < config.size; ++i)
       {
@@ -90,13 +89,13 @@ namespace qdft
 
         data.offsets[i] = static_cast<size_t>(offset);
 
-        const F weight = F(1) / period;
-
-        data.weights[i] = weight;
-
         const double latency = (data.periods.front() - offset) / config.samplerate;
 
         data.latencies[i] = latency;
+
+        const F weight = F(1) / period;
+
+        data.weights[i] = weight;
       }
 
       data.fiddles.resize(config.size * 3);
@@ -145,6 +144,11 @@ namespace qdft
       return config.size;
     }
 
+    const std::vector<double>& frequencies() const
+    {
+      return data.frequencies;
+    }
+
     const std::vector<double>& qualities() const
     {
       return data.qualities;
@@ -153,11 +157,6 @@ namespace qdft
     const std::vector<double>& latencies() const
     {
       return data.latencies;
-    }
-
-    const std::vector<double>& frequencies() const
-    {
-      return data.frequencies;
     }
 
     void qdft(const T sample, std::complex<F>* const dft)
@@ -260,9 +259,8 @@ namespace qdft
       double samplerate;
       std::pair<double, double> bandwidth;
       double resolution;
-      double gamma;
-      double latency;
       double quality;
+      double latency;
       size_t size;
       std::optional<std::pair<double, double>> window;
     };
@@ -273,10 +271,10 @@ namespace qdft
     {
       std::vector<double> frequencies;
       std::vector<double> qualities;
+      std::vector<double> latencies;
       std::vector<size_t> periods;
       std::vector<size_t> offsets;
       std::vector<F> weights;
-      std::vector<double> latencies;
 
       std::vector<std::complex<F>> fiddles;
       std::vector<std::complex<F>> twiddles;

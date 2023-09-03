@@ -32,7 +32,7 @@ class QDFT:
     Constant-Q Sliding Discrete Fourier Transform (QDFT).
     """
 
-    def __init__(self, samplerate, bandwidth, resolution=24, gamma=0, latency=0, window=(+0.5,-0.5)):
+    def __init__(self, samplerate, bandwidth, resolution=24, quality=0, latency=0, window=(+0.5,-0.5)):
         """
         Create a new QDFT plan.
 
@@ -44,7 +44,7 @@ class QDFT:
             Lowest and highest frequency in hertz to be resolved.
         resolution : int, optional
             Octave resolution, e.g. number of DFT bins per octave.
-        gamma : float, optional
+        quality : float, optional
             Bandwidth offset for determining filter lengths.
         latency : float, optional
             Analysis latency adjustment between -1 and +1.
@@ -58,7 +58,7 @@ class QDFT:
         frequencies = bandwidth[0] * numpy.power(2, numpy.arange(size) / resolution)
 
         alpha = 2 ** (1 / resolution) - 1
-        beta = (alpha * 24.7 / 0.108) if (gamma is None) or (gamma < 0) else gamma
+        beta = (alpha * 24.7 / 0.108) if (quality is None) or (quality < 0) else quality
         qualities = frequencies / (alpha * frequencies + beta)
 
         periods = numpy.ceil(qualities * samplerate / frequencies).astype(int)
@@ -83,12 +83,12 @@ class QDFT:
         self.samplerate = samplerate
         self.bandwidth = bandwidth
         self.resolution = resolution
-        self.gamma = gamma
+        self.quality = quality
+        self.qualities = qualities
         self.latency = latency
         self.latencies = latencies
         self.window = window
         self.kernels = kernels
-        self.qualities = qualities
         self.size = size
         self.frequencies = frequencies
         self.periods = periods
