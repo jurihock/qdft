@@ -63,10 +63,10 @@ def main():
 
     ticks = np.linspace(0, 1, qdft.size, endpoint=True)
     freqs = qdft.frequencies
-    latency = list(zip(qdft.latency, ticks))
+    lates = list(zip(qdft.latencies, ticks))
 
     plot.gca().yaxis.set_major_formatter(lambda tick, _: np.interp(tick, ticks, freqs).astype(int))
-    plot.gca().add_patch(patches.Polygon(latency[::+1] + latency[::-1], linewidth=1, linestyle='--', color='w', alpha=0.5))
+    plot.gca().add_patch(patches.Polygon(lates[::+1] + lates[::-1], linewidth=1, linestyle='--', color='w', alpha=0.5))
 
     plot.show()
 

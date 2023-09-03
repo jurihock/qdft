@@ -59,15 +59,15 @@ class QDFT:
 
         alpha = 2 ** (1 / resolution) - 1
         beta = (alpha * 24.7 / 0.108) if (gamma is None) or (gamma < 0) else gamma
-        quality = frequencies / (alpha * frequencies + beta)
+        qualities = frequencies / (alpha * frequencies + beta)
 
-        periods = numpy.ceil(quality * samplerate / frequencies).astype(int)
+        periods = numpy.ceil(qualities * samplerate / frequencies).astype(int)
         offsets = numpy.ceil((periods[0] - periods) * numpy.clip(latency * 0.5 + 0.5, 0, 1)).astype(int)
         weights = 1 / periods
-        latency = (periods[0] - offsets) / samplerate
+        latencies = (periods[0] - offsets) / samplerate
 
-        fiddles = numpy.exp(-2j * numpy.pi * (quality + kernels[:, None]))
-        twiddles = numpy.exp(+2j * numpy.pi * (quality + kernels[:, None]) / periods)
+        fiddles = numpy.exp(-2j * numpy.pi * (qualities + kernels[:, None]))
+        twiddles = numpy.exp(+2j * numpy.pi * (qualities + kernels[:, None]) / periods)
 
         inputs = numpy.zeros(periods[0], dtype=float)
         outputs = numpy.zeros((size, kernels.size), dtype=complex)
@@ -85,9 +85,10 @@ class QDFT:
         self.resolution = resolution
         self.gamma = gamma
         self.latency = latency
+        self.latencies = latencies
         self.window = window
         self.kernels = kernels
-        self.quality = quality
+        self.qualities = qualities
         self.size = size
         self.frequencies = frequencies
         self.periods = periods
