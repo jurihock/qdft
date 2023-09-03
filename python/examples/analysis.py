@@ -4,6 +4,7 @@ sys.path.insert(0, src)
 
 from qdft import QDFT
 
+import matplotlib.patches as patches
 import matplotlib.pyplot as plot
 import numpy as np
 
@@ -60,9 +61,12 @@ def main():
 
     plot.clim(-120, 0)
 
+    ticks = np.linspace(0, 1, qdft.size, endpoint=True)
     freqs = qdft.frequencies
-    ticks = np.linspace(0, 1, freqs.size, endpoint=True)
+    latency = list(zip(qdft.latency, ticks))
+
     plot.gca().yaxis.set_major_formatter(lambda tick, _: np.interp(tick, ticks, freqs).astype(int))
+    plot.gca().add_patch(patches.Polygon(latency[::+1] + latency[::-1], linewidth=1, linestyle='--', color='w', alpha=0.5))
 
     plot.show()
 

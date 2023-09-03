@@ -64,6 +64,7 @@ class QDFT:
         periods = numpy.ceil(quality * samplerate / frequencies).astype(int)
         offsets = numpy.ceil((periods[0] - periods) * numpy.clip(latency * 0.5 + 0.5, 0, 1)).astype(int)
         weights = 1 / periods
+        latency = (periods[0] - offsets) / samplerate
 
         fiddles = numpy.exp(-2j * numpy.pi * (quality + kernels[:, None]))
         twiddles = numpy.exp(+2j * numpy.pi * (quality + kernels[:, None]) / periods)
