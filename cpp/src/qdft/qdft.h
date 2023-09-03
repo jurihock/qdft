@@ -66,8 +66,9 @@ namespace qdft
       data.periods.resize(config.size);
       data.offsets.resize(config.size);
       data.weights.resize(config.size);
+      data.latencies.resize(config.size);
 
-      const double alpha = std::pow(2.0, 1.0 / resolution) - 1.0;
+      const double alpha = std::pow(2.0, 1.0 / config.resolution) - 1.0;
       const double beta = (gamma < 0) ? (alpha * 24.7 / 0.108) : gamma;
 
       for (size_t i = 0; i < config.size; ++i)
@@ -92,6 +93,10 @@ namespace qdft
         const F weight = F(1) / period;
 
         data.weights[i] = weight;
+
+        const double latency = (data.periods.front() - offset) / config.samplerate;
+
+        data.latencies[i] = latency;
       }
 
       data.fiddles.resize(config.size * 3);
@@ -140,14 +145,14 @@ namespace qdft
       return config.size;
     }
 
-    double quality() const
+    const std::vector<double>& qualities() const
     {
-      return config.quality;
+      return data.qualities;
     }
 
-    double latency() const
+    const std::vector<double>& latencies() const
     {
-      return config.latency;
+      return data.latencies;
     }
 
     const std::vector<double>& frequencies() const
@@ -271,6 +276,7 @@ namespace qdft
       std::vector<size_t> periods;
       std::vector<size_t> offsets;
       std::vector<F> weights;
+      std::vector<double> latencies;
 
       std::vector<std::complex<F>> fiddles;
       std::vector<std::complex<F>> twiddles;
