@@ -169,7 +169,7 @@ namespace qdft
       return config.latency;
     }
 
-    const std::optional<std::pair<double, double>>& window const
+    const std::optional<std::pair<double, double>>& window() const
     {
       return config.window;
     }
