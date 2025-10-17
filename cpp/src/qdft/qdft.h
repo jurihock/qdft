@@ -50,8 +50,6 @@ namespace qdft
          const double latency = 0,
          const std::optional<std::pair<double, double>> window = std::make_pair(+0.5,-0.5))
     {
-      const F pi = std::acos(F(-1));
-
       config.samplerate = samplerate;
       config.bandwidth = bandwidth;
       config.resolution = resolution;
@@ -93,23 +91,25 @@ namespace qdft
 
         data.latencies[i] = latency;
 
-        const F weight = F(1) / period;
+        const double weight = 1.0 / period;
 
-        data.weights[i] = weight;
+        data.weights[i] = static_cast<F>(weight);
       }
 
       data.fiddles.resize(config.size * 3);
       data.twiddles.resize(config.size * 3);
 
+      const double pi = std::acos<double>(-1);
+
       for (const int k : { -1, 0, +1 })
       {
         for (size_t i = 0, j = 1; i < config.size; ++i, j+=3)
         {
-          const std::complex<F> fiddle = std::polar(F(1), F(-2) * pi * (data.qualities[i] + k));
+          const std::complex<F> fiddle = std::polar(F(1), static_cast<F>(-2 * pi * (data.qualities[i] + k)));
 
           data.fiddles[j + k] = fiddle;
 
-          const std::complex<F> twiddle = std::polar(F(1), F(+2) * pi * (data.qualities[i] + k) / data.periods[i]);
+          const std::complex<F> twiddle = std::polar(F(1), static_cast<F>(+2 * pi * (data.qualities[i] + k) / data.periods[i]));
 
           data.twiddles[j + k] = twiddle;
         }
@@ -199,8 +199,8 @@ namespace qdft
       if (config.window)
       {
         const std::pair<double, double> w = config.window.value();
-        const F a = w.first;
-        const F b = w.second / 2;
+        const F a = static_cast<F>(w.first);
+        const F b = static_cast<F>(w.second / 2);
 
         for (size_t i = 0, j = 1; i < config.size; ++i, j+=3)
         {
